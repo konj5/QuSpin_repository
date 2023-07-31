@@ -39,7 +39,7 @@ for h in hs:
 
     E, vect = H.eigh()
 
-    state = vect[:,1]
+    state = vect[:,0]
 
     M = 0
     for i in range(2**N):
@@ -79,11 +79,11 @@ for h in hs:
 
     E, vect = H.eigh()
 
-    state = vect[:,1]
+    state = vect[:,0]
 
     expected_value = np.zeros(N)
     for i in range(2**N):
-        expected_value +=  state[i]**2 * (2*bin_array(i,N)-1)    #########################ZAKAJ TA PRISTOP NE DELUJE?????????????????
+        expected_value +=  state[i]**2 * (2*bin_array(i,N)-1)    #########################ZAKAJ TA PRISTOP NE DELUJE?????????????????  ------> Ker ni ista stvar matematično sploh ti dumbass
 
     M = np.sum(expected_value) / N
 
