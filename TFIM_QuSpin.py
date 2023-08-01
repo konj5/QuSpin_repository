@@ -29,16 +29,21 @@ def exactDiag(N:int, h:float, J:float) -> tuple:
 def magnetization(ground_state:np.ndarray) -> float:
     
     M = 0
+    N = int(np.round(np.log2(len(ground_state))))
     for i in range(len(ground_state)):
-        M += np.abs(ground_state[i]**2 * np.sum(2 *bin_array(i,int(np.round(np.log2(len(ground_state))))) - 1))
+        M += np.abs(ground_state[i]**2 * np.sum(2 *bin_array(i,N) - 1)) / N
     
     return M
 
-Ms = []
-hs = np.linspace(0,2,100)
-for h in hs:
-    Ms.append(magnetization(exactDiag(8,h,1)[1][:,0]))
+def main():
+    Ms = []
+    hs = np.linspace(0,2,100)
+    for h in hs:
+        Ms.append(magnetization(exactDiag(8,h,1)[1][:,0]))
 
-plt.plot(hs,Ms)
-plt.show()
+    plt.plot(hs,Ms)
+    plt.title("Enoverižni sistem")
+    plt.show()
+
+#main()
     
