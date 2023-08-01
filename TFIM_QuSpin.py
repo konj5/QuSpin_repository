@@ -45,5 +45,37 @@ def main():
     plt.title("Enoverižni sistem")
     plt.show()
 
+
+def plot_3d():
+    n = 20
+    Ms_2d = np.zeros((n,n))
+    xdata, ydata, zdata = ([],[],[])
+    hs = np.linspace(-2,2,n)
+    Js = np.linspace(-1,1,n)
+    for i in range(n):
+        for j in range(n):
+            print(f"{i}, {j}")
+            Ms_2d[i,j] = magnetization(exactDiag(8,hs[j],Js[i])[1][:,0])
+            xdata.append(Js[i])
+            ydata.append(hs[j])
+            zdata.append(Ms_2d[i,j])
+
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    #ax.scatter3D(xdata, ydata, zdata, c=zdata, cmap='Greens')
+    ax.plot_trisurf(xdata, ydata, zdata,cmap='viridis', edgecolor='none')
+    ax.set_xlabel("J")
+    ax.set_ylabel("h")
+    ax.set_zlabel("M")
+    
+    
+
+    fig.add_axes(ax)
+
+    plt.show()    
+
+
+
 #main()
     
+#plot_3d()

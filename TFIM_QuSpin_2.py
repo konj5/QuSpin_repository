@@ -54,7 +54,7 @@ def main():
     M1s = []
     M2s = [] #Sistem dveh verig
     J = 1
-    JT = 10000
+    JT = 1
 
     hs = np.linspace(0,2,100)
     for h in hs:
@@ -74,4 +74,36 @@ def main():
     plt.show()
 
 
-main()
+def plot_3d():
+    n = 30
+    Ms_2d = np.zeros((n,n))
+    xdata, ydata, zdata = ([],[],[])
+    hs = np.linspace(-20,20,n)
+    JTs = np.linspace(-20,20,n)
+    J = 1
+
+    for i in range(len(JTs)):
+        for j in range(len(hs)):
+            print(f"{i}, {j}")
+            Ms_2d[i,j] = magnetization(exactDiag(4,hs[j],J,JTs[i])[1][:,0])[0]
+            xdata.append(JTs[i])
+            ydata.append(hs[j])
+            zdata.append(Ms_2d[i,j])
+
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    #ax.scatter3D(xdata, ydata, zdata, c=zdata, cmap='Greens')
+    ax.plot_trisurf(xdata, ydata, zdata,cmap='viridis', edgecolor='none')
+    ax.set_xlabel("JT")
+    ax.set_ylabel("h")
+    ax.set_zlabel("M")
+    
+    
+
+    fig.add_axes(ax)
+
+    plt.show()    
+
+#main()
+
+plot_3d()
