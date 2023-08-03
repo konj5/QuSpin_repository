@@ -40,16 +40,20 @@ def magnetization(ground_state:np.ndarray) -> float:
 def main():
     Ms = []
     hs = np.linspace(0,2,100)
+    J = 1
+    N = 8
     for h in hs:
-        Ms.append(magnetization(exactDiag(8,h,1)[1][:,0]))
+        Ms.append(magnetization(exactDiag(N,h,J)[1][:,0]))
 
     plt.plot(hs,Ms)
-    plt.title("Enoverižni sistem")
+    plt.title(f"Standardni TFIM (J = {J}, N = {N})")
+    plt.xlabel("h")
+    plt.ylabel("M")
     plt.show()
 
 
 def plot_3d():
-    n = 20
+    n = 30
     Ms_2d = np.zeros((n,n))
     xdata, ydata, zdata = ([],[],[])
     hs = np.linspace(-2,2,n)
@@ -78,7 +82,7 @@ def plot_3d():
 
 
 def plot_contour():
-    n = 20
+    n = 100
     Ms_2d = np.zeros((n,n))
     xdata, ydata, zdata = ([],[],[])
     hs = np.linspace(-2,2,n)
@@ -94,7 +98,7 @@ def plot_contour():
     #f = interpolate.interp2d(x=xdata, y=ydata, z=zdata,kind="cubic")
 
     fig,ax=plt.subplots(1,1)
-    cp = ax.contourf(Js, hs, Ms_2d)
+    cp = ax.contourf(Js, hs, Ms_2d, levels = 20)
     fig.colorbar(cp)
     ax.set_xlabel('J')
     ax.set_ylabel('h')
