@@ -2,6 +2,8 @@ from quspin.operators import hamiltonian # Hamiltonians and operators
 from quspin.basis import spin_basis_1d# Hilbert space spin basis
 import numpy as np # generic math functions
 import matplotlib.pyplot as plt # plotting library
+from scipy import interpolate # polynomial interpolation library
+
 
 def bin_array(num:int, m:int) -> list:
     """Convert a positive integer num into an m-bit bit vector"""
@@ -72,10 +74,38 @@ def plot_3d():
 
     fig.add_axes(ax)
 
-    plt.show()    
+    plt.show()
+
+
+def plot_contour():
+    n = 20
+    Ms_2d = np.zeros((n,n))
+    xdata, ydata, zdata = ([],[],[])
+    hs = np.linspace(-2,2,n)
+    Js = np.linspace(-1,1,n)
+    for i in range(n):
+        for j in range(n):
+            print(f"{i}, {j}")
+            Ms_2d[i,j] = magnetization(exactDiag(8,hs[j],Js[i])[1][:,0])
+            xdata.append(Js[i])
+            ydata.append(hs[j])
+            zdata.append(Ms_2d[i,j])
+
+    #f = interpolate.interp2d(x=xdata, y=ydata, z=zdata,kind="cubic")
+
+    fig,ax=plt.subplots(1,1)
+    cp = ax.contourf(Js, hs, Ms_2d)
+    fig.colorbar(cp)
+    ax.set_xlabel('J')
+    ax.set_ylabel('h')
+    plt.show()
+
+
 
 
 
 #main()
     
 #plot_3d()
+
+#plot_contour()
