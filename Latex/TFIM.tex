@@ -24,7 +24,7 @@
 \section{Standardni TFIM model}
 Hamiltonian za standardni Isingov model z tranzverzalnim poljem se glasi
 \begin{equation}
-    \hat{H} = \sum_{< i,j >} -J \hat{\sigma_i^z} \hat{\sigma_j^z}
+    \hat{H} = \sum_{< i,j >} -J \hat{\sigma_i^z} \hat{\sigma_j^z} - h\sum_i \hat{\sigma_i^x} - J_T \sum_i
 \end{equation}
 in ga za dimenzije $N < 10$ lahko rešimo z direktno diagonalizacijo v doglednem času. Vse naslednje metode, predstavljene v tem poglavju se nahajajo v datoteki TFIM\_QuSpin.py . Dobra mera za stanje sistema, ki nas bo tu zanimala, je magnetizacija, ki jo definiramo kot:
 \begin{equation}
@@ -41,6 +41,23 @@ in ga za dimenzije $N < 10$ lahko rešimo z direktno diagonalizacijo v doglednem
      \includegraphics[width = .5 \linewidth]{STFIM2.png}
      &  
      \includegraphics[width = .5 \linewidth]{STFIM3.png}\\
+\end{tabular}
+Grafa narisana preko plot3d() in plot\_contour().
+
+
+\section{Sklopljeni verigi}
+Hamiltonian se glasi
+\begin{equation}
+    \hat{H} = \sum_{< i,j >} -J \hat{\sigma_{1i}^z} \hat{\sigma_{1j}^z} + \sum_{< i,j >} -J \hat{\sigma_{2i}^z} \hat{\sigma_{2j}^z} - h\sum_i \hat{\sigma_{1i}^x}- h\sum_i \hat{\sigma_{2i}^x} - J_T \sum_i \hat{\sigma_{1j}^z} \hat{\sigma_{2i}^z}
+\end{equation}
+in ga za dimenzije $N < 10$ lahko rešimo z direktno diagonalizacijo v doglednem času. Vse naslednje metode, predstavljene v tem poglavju se nahajajo v datoteki TFIM\_QuSpin\_2.py . Dobra mera za stanje sistema, ki nas bo tu zanimala, je magnetizacija, ki jo definiramo kot:
+
+\noindent Če variiramo oba $h$ ter $J_T$ pri fiksnem $J = 1$ lahko narišemo 3D in contour grafa\\\\
+
+\begin{tabular}{c c}
+     \includegraphics[width = .5 \linewidth]{2TFIM1.png}
+     &  
+     \includegraphics[width = .5 \linewidth]{2TFIM2.png}\\
 \end{tabular}
 Grafa narisana preko plot3d() in plot\_contour().
 

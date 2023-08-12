@@ -132,6 +132,6 @@ def plot_contour():
 
 #main()
 
-#plot_3d()
+plot_3d()
 
 #plot_contour()
