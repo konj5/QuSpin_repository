@@ -21,12 +21,22 @@
 \section{Uvod}
 \textless \hspace{1pt} tu vstavi fenomenalno napisan uvod \textgreater
 
+
 \section{Standardni TFIM model}
 Hamiltonian za standardni Isingov model z tranzverzalnim poljem se glasi
 \begin{equation}
     \hat{H} = \sum_{< i,j >} -J \hat{\sigma_i^z} \hat{\sigma_j^z} - h\sum_i \hat{\sigma_i^x} - J_T \sum_i
 \end{equation}
-in ga za dimenzije $N < 10$ lahko rešimo z direktno diagonalizacijo v doglednem času. Vse naslednje metode, predstavljene v tem poglavju se nahajajo v datoteki TFIM\_QuSpin.py . Dobra mera za stanje sistema, ki nas bo tu zanimala, je magnetizacija, ki jo definiramo kot:
+in ga za dimenzije $N < 10$ lahko rešimo z eksaktno diagonalizacijo v doglednem času. 
+
+ \subsection{Eksaktna diagonalizacija TFIM modela}
+Da izvedemo eksaktno diagonalizacijo moramo najprej sestaviti matriko, ki predstavlja hamiltonian. To storimo tako, da zgornjo vsoto interpretiramo v smislu, kjer sta $\hat{\sigma_j^z}$, $\hat{\sigma_j^x}$ paulijevi matriki, produkt med njima pa je tenzorski produkt, kjer za vsak člen postavimo identitetne matrike na vsa mesta razen na i-to in j-to mesto.\\\\
+
+\noindent Ko je hamiltonian postavljen, lahko matriko diagonaliziramo z poljubnim algoritmom. V tem primeru uporabljamo implementacijo ???????????????\\\\\\
+
+ 
+
+\noindent Vse naslednje metode, predstavljene v tem poglavju se nahajajo v datoteki TFIM\_QuSpin.py . Dobra mera za stanje sistema, ki nas bo tu zanimala, je magnetizacija, ki jo definiramo kot:
 \begin{equation}
     M = \frac{1}{N}\sum_{i=0}^N \sigma_i^z
 \end{equation}\\
