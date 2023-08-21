@@ -24,7 +24,7 @@ def exactDiag(N:int, h:float, J:float, JT:float) -> tuple:
 
     H = hamiltonian(static_spin, dynamic_spin, basis=spin_basis,dtype=np.float64)
 
-    E, eigvect = H.eigh()
+    E, eigvect = H.eigsh(k=1,which = "SA")
 
     return (E, eigvect)
 
@@ -78,8 +78,8 @@ def plot_3d():
     n = 30
     Ms_2d = np.zeros((n,n))
     xdata, ydata, zdata = ([],[],[])
-    hs = np.linspace(-20,20,n)
-    JTs = np.linspace(-20,20,n)
+    hs = np.linspace(-5,5,n)
+    JTs = np.linspace(-5,5,n)
     J = 1
 
     for i in range(len(JTs)):
@@ -130,8 +130,44 @@ def plot_contour():
     ax.set_ylabel('h')
     plt.show()
 
+
+def plot_3d_variable_N():
+    for N in range(1,10):
+        n = 30
+        Ms_2d = np.zeros((n,n))
+        xdata, ydata, zdata = ([],[],[])
+        hs = np.linspace(-5,5,n)
+        JTs = np.linspace(-5,5,n)
+        J = 1
+
+        for i in range(len(JTs)):
+            for j in range(len(hs)):
+                print(f"{i}, {j}")
+                Ms_2d[i,j] = magnetization(exactDiag(4,hs[j],J,JTs[i])[1][:,0])[0]
+                xdata.append(JTs[i])
+                ydata.append(hs[j])
+                zdata.append(Ms_2d[i,j])
+
+        fig = plt.figure()
+        ax = plt.axes(projection='3d')
+        #ax.scatter3D(xdata, ydata, zdata, c=zdata, cmap='Greens')
+        ax.plot_trisurf(xdata, ydata, zdata,cmap='viridis', edgecolor='none')
+        ax.set_xlabel("JT")
+        ax.set_ylabel("h")
+        ax.set_zlabel("M")
+        ax.view_init(20, 200) 
+        
+
+        fig.add_axes(ax)
+
+        fig.savefig(f"TFIM2_3D_N={N}.pdf")
+        plt.cla()
+
+
 #main()
 
-plot_3d()
+#plot_3d()
 
 #plot_contour()
+
+plot_3d_variable_N()
