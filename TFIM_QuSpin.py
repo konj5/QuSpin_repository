@@ -105,6 +105,27 @@ def plot_contour():
     plt.show()
 
 
+def plot_variable_N():
+    for N in range(2, 20):
+        try:
+            Ms = []
+            hs = np.linspace(0,2,100)
+            J = 1
+            for h in hs:
+                Ms.append(magnetization(exactDiag(N,h,J)[1][:,0]))
+
+            plt.plot(hs,Ms, label = f"N = {N})")
+            print(N)
+        except:
+            break
+
+
+    plt.title("Standardni TFIM")
+    plt.xlabel("h")
+    plt.ylabel("M")
+    plt.legend()
+    plt.show()
+
 
 
 
@@ -113,3 +134,5 @@ def plot_contour():
 #plot_3d()
 
 #plot_contour()
+
+plot_variable_N()
