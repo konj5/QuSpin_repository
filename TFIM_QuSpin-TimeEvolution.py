@@ -37,11 +37,6 @@ def magnetization(ground_state:np.ndarray) -> float:
     
     return M
 
-def linear(t:float, a:float) -> float:
-    if t < 100: return t/100
-
-    return 1
-
 
 def timeEvolution(N:int, hmax:float, J:float, a:float, drive, t0:float, tmax:float):
     J_interaction = [[-J,i,i+1] for i in range(N-1)]
@@ -73,7 +68,7 @@ def energyTimeEvolution(N:int, hmax:float, J:float, a:float, drive:callable, t0:
     #print(bin_array(spin_basis[0], m = N))
 
     ts = np.linspace(t0,tmax,100)
-    states = H.evolve(v0=[0 if x != 0 else 1 for x in range(2**N)], t0 = 0, times=ts)
+    states = H.evolve(v0=[0 if x != 0 else 1 for x in range(2**N)], t0 = t0, times=ts)
     Es = []
 
     for i in range(len(ts)):
@@ -89,7 +84,7 @@ def energyTimeEvolution(N:int, hmax:float, J:float, a:float, drive:callable, t0:
 
     return Es
 
-def energyComparison(N:int, hmax:float, J:float, a:float, drive:callable, t0:float, tmax:float):
+def energyComparison(N:int, hmax:float, J:float, a:float, drive:object):
     
     #exact diagonalization
     (E0_exact, trash) = exactDiag(N, hmax, J)
@@ -97,14 +92,101 @@ def energyComparison(N:int, hmax:float, J:float, a:float, drive:callable, t0:flo
 
 
     #evolution
-    Es = energyTimeEvolution(N,hmax, J, a, drive, t0, tmax)
+    Es = energyTimeEvolution(N,hmax, J, a, drive.drive, drive.t0, drive.tend)
     E0_evolved = Es[-1]
 
-    print(f"Exact ground state: {E0_exact}, Evolved: {E0_evolved}, difference: {np.abs(E0_exact-E0_evolved)}")
+    return (f"Exact ground state: {E0_exact}, Evolved: {E0_evolved}, difference: {np.abs(E0_exact-E0_evolved)}", [E0_exact, E0_evolved, np.abs(E0_exact-E0_evolved)])
 
-energyComparison(N=12,hmax=1,J=1,a=0,drive=linear,t0=0,tmax=200)
+class linearDrive:
+    t0 = 0
 
+    def __init__(self, tmax, tend) -> None:
+        self.tmax = tmax
+        self.tend = tend
 
+    def drive(self, t:float, a:float) -> float:
+        if t < 100: return t/100
 
+        return 1
+    
+class exponentialDrive:
 
+    #In this setup optimal a appears to be ~0.0469
+    
+    def __init__(self, t0:float, tend:float) -> None:
+        self.t0=t0
+        self.tend=tend
+
+    def drive(self, t:float, a:float) -> float:
+        if t < self.t0 + 10:
+            return 0
+        elif t < 0:
+            return np.exp(a*t)
+        else:
+            return 1
+        
+class fermiDiracDrive:
+
+    #optimum appears to be a ~ 0.049
+
+    def __init__(self, t0:float, tend:float) -> None:
+        self.t0=t0
+        self.tend=tend
+
+    def drive(self, t:float, a:float) -> float:
+        if t < self.t0 + 10:
+            return 0
+        elif t < self.tend - 10:
+            return 1 / (1 + np.exp(-a*t))
+        else:
+            return 1
+
+"""
+N = 14
+resultLinear = energyComparison(N=N,hmax=1,J=1,a=0,drive=linearDrive(100,200))
+resultExponential = energyComparison(N=N,hmax=1,J=1,a=0.0469,drive=exponentialDrive(-100,100))
+resultFD = energyComparison(N=N,hmax=1,J=1,a=0.049,drive=exponentialDrive(-100,100))
+
+print(f"Linear -> {resultLinear[0]}")
+print(f"Exponential -> {resultExponential[0]}")
+print(f"Exponential -> {resultFD[0]}")
+"""
+
+def varyParameterA():
+    diff = []
+    As = np.linspace(0.102,0.106,100)
+    for a in As:
+        diff.append(energyComparison(N=12,hmax=1,J=1,a=a,drive=fermiDiracDrive(-100,100))[1][2])
+        print(a)
+    
+    plt.plot(As, diff)
+    plt.scatter(As, diff)
+    plt.show()
+
+#varyParameterA()
+
+def varyParameterN():
+    diffLin = []
+    diffExp = []
+    diffFD = []
+    ns = [i for i in range(1,16,1)]
+    for N in ns:
+        diffLin.append(energyComparison(N=12,hmax=1,J=1,a=0,drive=linearDrive(100,200))[1][2])
+        diffExp.append(energyComparison(N=N,hmax=1,J=1,a=0.0469,drive=exponentialDrive(-100,100))[1][2])
+        diffFD.append(energyComparison(N=N,hmax=1,J=1,a=0.049,drive=fermiDiracDrive(-100,100))[1][2])
+        print(N)
+    
+    plt.plot(ns, diffLin, label = "linear")
+    plt.scatter(ns, diffLin)
+
+    plt.plot(ns, diffExp, label = "exponential")
+    plt.scatter(ns, diffExp)
+
+    plt.plot(ns, diffFD, label = "fermi-dirac")
+    plt.scatter(ns, diffFD)
+    
+    plt.legend()
+    plt.show()
+
+varyParameterN()
 
