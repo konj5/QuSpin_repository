@@ -132,7 +132,7 @@ def plot_contour():
 
 
 def plot_3d_variable_N():
-    for N in range(1,10):
+    for N in range(1,9):
         n = 30
         Ms_2d = np.zeros((n,n))
         xdata, ydata, zdata = ([],[],[])
@@ -143,7 +143,7 @@ def plot_3d_variable_N():
         for i in range(len(JTs)):
             for j in range(len(hs)):
                 print(f"{i}, {j}")
-                Ms_2d[i,j] = magnetization(exactDiag(4,hs[j],J,JTs[i])[1][:,0])[0]
+                Ms_2d[i,j] = magnetization(exactDiag(N,hs[j],J,JTs[i])[1][:,0])[0]
                 xdata.append(JTs[i])
                 ydata.append(hs[j])
                 zdata.append(Ms_2d[i,j])
@@ -170,4 +170,14 @@ def plot_3d_variable_N():
 
 #plot_contour()
 
-plot_3d_variable_N()
+#plot_3d_variable_N()
+
+Ns = [i for i in range(1,8)]
+pairs = dict()
+for N in Ns:
+
+    E, eigv = exactDiag(N, h = 0, J = 1, JT = 0)
+
+    pairs[N] = eigv[:,0]
+    
+print(pairs)

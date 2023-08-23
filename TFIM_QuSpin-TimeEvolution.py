@@ -141,8 +141,8 @@ class fermiDiracDrive:
         else:
             return 1
 
-"""
-N = 14
+
+N = 8
 resultLinear = energyComparison(N=N,hmax=1,J=1,a=0,drive=linearDrive(100,200))
 resultExponential = energyComparison(N=N,hmax=1,J=1,a=0.0469,drive=exponentialDrive(-100,100))
 resultFD = energyComparison(N=N,hmax=1,J=1,a=0.049,drive=exponentialDrive(-100,100))
@@ -150,7 +150,7 @@ resultFD = energyComparison(N=N,hmax=1,J=1,a=0.049,drive=exponentialDrive(-100,1
 print(f"Linear -> {resultLinear[0]}")
 print(f"Exponential -> {resultExponential[0]}")
 print(f"Exponential -> {resultFD[0]}")
-"""
+
 
 def varyParameterA():
     diff = []
@@ -188,5 +188,5 @@ def varyParameterN():
     plt.legend()
     plt.show()
 
-varyParameterN()
+#varyParameterN()
 

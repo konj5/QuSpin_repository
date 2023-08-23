@@ -24,7 +24,8 @@ def exactDiag(N:int, h:float, J:float) -> tuple:
 
     H = hamiltonian(static_spin, dynamic_spin, basis=spin_basis,dtype=np.float64)
 
-    E, eigvect = H.eigsh(k=1,which = "SA")
+    #E, eigvect = H.eigsh(k=1,which = "SA")
+    E, eigvect = H.eigh()
 
     return (E, eigvect)
 
@@ -106,7 +107,7 @@ def plot_contour():
 
 
 def plot_variable_N():
-    for N in range(2, 14):
+    for N in range(2, 18,4):
         try:
             Ms = []
             hs = np.linspace(0,2,100)
@@ -170,3 +171,13 @@ def plot_3d_variable_N():
 #plot_variable_N()
 
 #plot_3d_variable_N()
+
+Ns = [i for i in range(1,8)]
+pairs = dict()
+for N in Ns:
+
+    E, eigv = exactDiag(N, h = 0, J = 1)
+
+    pairs[N] = eigv[:,0]
+    
+print(pairs)
