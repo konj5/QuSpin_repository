@@ -2,7 +2,7 @@ from quspin.operators import hamiltonian # Hamiltonians and operators
 from quspin.basis import spin_basis_1d# Hilbert space spin basis
 import numpy as np # generic math functions
 import matplotlib.pyplot as plt # plotting library
-from scipy import interpolate # polynomial interpolation library
+from scipy import optimize as optim #gradient descent library
 
 
 
@@ -300,7 +300,7 @@ class fermiDiracDrive:
             else:
                 return 1
 
-
+"""
 N = 4
 resultLinear = energyComparison(N=N,hmax=1,J=1,JT=1,a=0, b=0,drive=linearDrive(100,200, mode="hJT"))
 resultExponential = energyComparison(N=N,hmax=1,J=1,JT=1,a=0.0469, b=0.0469,drive=exponentialDrive(-100,100, mode="hJT"))
@@ -309,20 +309,50 @@ resultFD = energyComparison(N=N,hmax=1,J=1, JT=1,a=0.049, b=0.049,drive=exponent
 print(f"Linear -> {resultLinear[0]}")
 print(f"Exponential -> {resultExponential[0]}")
 print(f"Exponential -> {resultFD[0]}")
+"""
 
+def minimizeParametersAB():
 
-def varyParameterA():
-    diff = []
-    As = np.linspace(0.102,0.106,100)
-    for a in As:
-        diff.append(energyComparison(N=12,hmax=1,J=1,a=a,drive=fermiDiracDrive(-100,100))[1][2])
-        print(a)
+    def f(arg):
+        a = arg[0]
+        b = arg[1]
+
+        return(energyComparison(N=1,hmax=1,J=1,JT=1,a=a,b=b,drive=exponentialDrive(-100,100, mode="hJT"))[1][2])
+
+    print(optim.minimize(fun=f, x0=[0.49,1]))
+
+#minimizeParametersAB()
+
+def varryParametersAB():  ##########################   KJE STA V RESNICI ZDAJ OPTIMALNA a in b
+
+    def f(arg):
+        a = arg[0]
+        b = arg[1]
+
+        return(energyComparison(N=2,hmax=1,J=1,JT=2,a=a,b=b,drive=exponentialDrive(-100,100, mode="simult"))[1][2])
     
-    plt.plot(As, diff)
-    plt.scatter(As, diff)
+    As = np.linspace(0.25,0.75,10)
+    Bs = np.linspace(0,10,10)
+    diffs = []
+    xs = []
+    ys = []
+    for a in As:
+       for b in Bs:
+           xs.append(a)
+           ys.append(b)
+           diffs.append(f([a,b]))
+
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    #ax.scatter3D(xdata, ydata, zdata, c=zdata, cmap='Greens')
+    ax.plot_trisurf(xs, ys, diffs,cmap='viridis', edgecolor='none')
+    ax.set_xlabel("a")
+    ax.set_ylabel("b")
+    fig.add_axes(ax)
     plt.show()
 
-#varyParameterA()
+    
+varryParametersAB()
 
 def varyParameterN():
     diffLin = []
@@ -348,4 +378,5 @@ def varyParameterN():
     plt.show()
 
 #varyParameterN()
+
 
