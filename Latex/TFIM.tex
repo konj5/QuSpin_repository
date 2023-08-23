@@ -1,7 +1,7 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 
-\title{\HUGE TFIM Model}
+\title{\HUGE \textless Tu vstavi zelo dober naslov \textgreater}
 \author{Rok Mlinar Vahtar}
 \date{August 2023}
 \usepackage[slovene]{babel}
@@ -25,25 +25,26 @@
 \section{Standardni TFIM model}
 Hamiltonian za standardni Isingov model z tranzverzalnim poljem se glasi
 \begin{equation}
-    \hat{H} = \sum_{< i,j >} -J \hat{\sigma_i^z} \hat{\sigma_j^z} - h\sum_i \hat{\sigma_i^x} - J_T \sum_i
+    \hat{H} = \sum_{< i,j >} -J \hat{\sigma_i^z} \hat{\sigma_j^z} - h\sum_i \hat{\sigma_i^x}
 \end{equation}
 in ga za dimenzije $N < 10$ lahko rešimo z eksaktno diagonalizacijo v doglednem času. 
 
  \subsection{Eksaktna diagonalizacija TFIM modela}
-Da izvedemo eksaktno diagonalizacijo moramo najprej sestaviti matriko, ki predstavlja hamiltonian. To storimo tako, da zgornjo vsoto interpretiramo v smislu, kjer sta $\hat{\sigma_j^z}$, $\hat{\sigma_j^x}$ paulijevi matriki, produkt med njima pa je tenzorski produkt, kjer za vsak člen postavimo identitetne matrike na vsa mesta razen na i-to in j-to mesto.\\\\
-
-\noindent Ko je hamiltonian postavljen, lahko matriko diagonaliziramo z poljubnim algoritmom. V tem primeru uporabljamo implementacijo ???????????????\\\\\\
+Da izvedemo eksaktno diagonalizacijo moramo najprej sestaviti matriko, ki predstavlja hamiltonian. Najprej moramo določiti bazo, ki jo bomo uporabljali, saj hočemo, da za vektor $\Vec{x}$, ki bo predstavljal stanje velja naslednje: $\Vec{x}^T \hat{H} \Vec{x} = E$, kjer je E energija tega stanja. Bazni vektorji morajo skupaj predstavljati vsa možna stanja z-projekcije vseh N spinov. Če si za bazo izberemo stanja, tako da je n-to stanje enako kot binarno zapisan n (Peto stanje je 0...000101), kjer 0 in 1 predstavljata spin dol in gor, lahko hamiltonian zapišmo kot tentzorski produkt Paulijevih matrik in identitet. To pomeni, da za vsak člen v zgornji vsoti, tenzorsko pomnožimo Paulijevi matriki na mestih i in j, ter identitete povsod drugod, v vrstnem redu, kot si sledijo spini v verigi.\\\\
+Ko je matrika sestavljena jo le še diagonaliziramo z poljubnim algoritmom. Sam uporabljam python metodo scipy.linalg.eigsh, ki izkoristi hermitskost in redkost naše matrike, v zameno za to, da lahko izračuna le nekatere izmed lastnih vektorjev. Ker nas v resnici zanima le osnovno stanje, nam to ne dela težav, saj vedno lahko najdemo lastni vektor z najnižjo energijo.\\\\\\
 
  
 
-\noindent Vse naslednje metode, predstavljene v tem poglavju se nahajajo v datoteki TFIM\_QuSpin.py . Dobra mera za stanje sistema, ki nas bo tu zanimala, je magnetizacija, ki jo definiramo kot:
+\noindent Sedaj, ko imamo diagonaliziran hamiltonian, se lahko lotimo analize. Dobra mera za stanje sistema, ki nas bo tu zanimala, je magnetizacija, ki jo definiramo kot:
 \begin{equation}
     M = \frac{1}{N}\sum_{i=0}^N \sigma_i^z
 \end{equation}\\
+Vse naslednje metode, predstavljene v tem poglavju se nahajajo v datoteki TFIM\_QuSpin.py .
 Če fiksiramo J = 1 in variiramo h, ter vsakič izračunamo magnetizacijo, dobimo naslednji graf, ki kaže fazni prehod pri $h \approx J$. To opravlja funkcija main().
 
 \includegraphics[width = \linewidth]{STFIM1.png}
-
+Če želimo videti, kako se, ko $N \rightarrow \infty$, magnetizacija približuje stopnici, si lahko obledamo tudi ta graf.
+\includegraphics[width = \linewidth]{STFIM_variableN2.png}
 \newpage
 \noindent Če variiramo oba J in h lahko narišemo 3D in contour grafa, na katerih opazimo pričakovane lastnosti, kot so simetrija čez ravnino h = 0 in pa feromagnetno in antiferomagnetno obnašanje za $J > 0$ in $J < 0$.\\\\
 
