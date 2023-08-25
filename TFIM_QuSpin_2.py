@@ -30,6 +30,7 @@ def exactDiag(N:int, h:float, J:float, JT:float) -> tuple:
 
 def magnetization(ground_state:np.ndarray) -> tuple:
     
+    M = 0
     M1 = 0
     M2 = 0
     N = int(np.round(np.log2(len(ground_state)))) // 2
@@ -44,11 +45,36 @@ def magnetization(ground_state:np.ndarray) -> tuple:
         for j in range(N,2*N,1):
             m2 += state[j]
 
+        M += np.abs(np.abs(ground_state[i]**2 * (m1+m2) / (2*N)))
         M1+= np.abs(ground_state[i]**2 * m1 / N)
         M2+= np.abs(ground_state[i]**2 * m2 / N)
         
     
-    return (M1, M2)
+    return (M ,M1, M2)
+
+def anti_magnetization(ground_state:np.ndarray) -> tuple:
+    
+    M = 0
+    M1 = 0
+    M2 = 0
+    N = int(np.round(np.log2(len(ground_state)))) // 2
+    for i in range(len(ground_state)):
+        m1 = 0
+        m2 = 0
+        state = (2*bin_array(i,2*N)-1)
+        
+        for j in range(0,N,1):
+            m1 += state[j] * (-1)**j
+
+        for j in range(N,2*N,1):
+            m2 += state[j] * (-1)**j
+
+        M += np.abs(np.abs(ground_state[i]**2 * (m1+m2) / (2*N)))
+        M1+= np.abs(ground_state[i]**2 * m1 / N)
+        M2+= np.abs(ground_state[i]**2 * m2 / N)
+        
+    
+    return (M ,M1, M2)
 
 def main():
     M1s = []
