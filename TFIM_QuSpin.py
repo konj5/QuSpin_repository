@@ -38,6 +38,20 @@ def magnetization(ground_state:np.ndarray) -> float:
     
     return M
 
+def anti_magnetization(ground_state:np.ndarray) -> float:
+    
+    AM = 0
+    N = int(np.round(np.log2(len(ground_state))))
+    for i in range(len(ground_state)):
+        AMi = 0
+        statei = 2 *bin_array(i,N) - 1)
+        for j in range(N):
+            AMi += statei[j] * (-1)**j
+        
+        AM += np.abs(AMi)
+    
+    return AM
+
 def main():
     Ms = []
     hs = np.linspace(0,2,100)
@@ -45,6 +59,20 @@ def main():
     N = 8
     for h in hs:
         Ms.append(magnetization(exactDiag(N,h,J)[1][:,0]))
+
+    plt.plot(hs,Ms)
+    plt.title(f"Standardni TFIM (J = {J}, N = {N})")
+    plt.xlabel("h")
+    plt.ylabel("M")
+    plt.show()
+    
+def main_antiferomag():
+    Ms = []
+    hs = np.linspace(0,2,100)
+    J = 1
+    N = 8
+    for h in hs:
+        Ms.append(anti_magnetization(exactDiag(N,h,J)[1][:,0]))
 
     plt.plot(hs,Ms)
     plt.title(f"Standardni TFIM (J = {J}, N = {N})")
@@ -163,7 +191,9 @@ def plot_3d_variable_N():
 
 
 #main()
-    
+
+main_antiferomag()
+
 #plot_3d()
 
 #plot_contour()
@@ -172,12 +202,3 @@ def plot_3d_variable_N():
 
 #plot_3d_variable_N()
 
-Ns = [i for i in range(1,8)]
-pairs = dict()
-for N in Ns:
-
-    E, eigv = exactDiag(N, h = 0, J = 1)
-
-    pairs[N] = eigv[:,0]
-    
-print(pairs)
