@@ -29,7 +29,7 @@ Hamiltonian za standardni Isingov model z tranzverzalnim poljem se glasi
 \end{equation}
 in ga za dimenzije $N < 10$ lahko rešimo z eksaktno diagonalizacijo v doglednem času. 
 
- \subsection{Eksaktna diagonalizacija TFIM modela}
+ \subsection{Ekzaktna diagonalizacija TFIM modela}
 Da izvedemo eksaktno diagonalizacijo moramo najprej sestaviti matriko, ki predstavlja hamiltonian. Najprej moramo določiti bazo, ki jo bomo uporabljali, saj hočemo, da za vektor $\Vec{x}$, ki bo predstavljal stanje velja naslednje: $\Vec{x}^T \hat{H} \Vec{x} = E$, kjer je E energija tega stanja. Bazni vektorji morajo skupaj predstavljati vsa možna stanja z-projekcije vseh N spinov. Če si za bazo izberemo stanja, tako da je n-to stanje enako kot binarno zapisan n (Peto stanje je 0...000101), kjer 0 in 1 predstavljata spin dol in gor, lahko hamiltonian zapišmo kot tentzorski produkt Paulijevih matrik in identitet. To pomeni, da za vsak člen v zgornji vsoti, tenzorsko pomnožimo Paulijevi matriki na mestih i in j, ter identitete povsod drugod, v vrstnem redu, kot si sledijo spini v verigi.\\\\
 Ko je matrika sestavljena jo le še diagonaliziramo z poljubnim algoritmom. Sam uporabljam python metodo scipy.linalg.eigsh, ki izkoristi hermitskost in redkost naše matrike, v zameno za to, da lahko izračuna le nekatere izmed lastnih vektorjev. Ker nas v resnici zanima le osnovno stanje, nam to ne dela težav, saj vedno lahko najdemo lastni vektor z najnižjo energijo.\\\\\\
 
@@ -46,22 +46,50 @@ Vse naslednje metode, predstavljene v tem poglavju se nahajajo v datoteki TFIM\_
 Če želimo videti, kako se, ko $N \rightarrow \infty$, magnetizacija približuje stopnici, si lahko obledamo tudi ta graf.
 \includegraphics[width = \linewidth]{STFIM_variableN2.png}
 \newpage
-\noindent Če variiramo oba J in h lahko narišemo 3D in contour grafa, na katerih opazimo pričakovane lastnosti, kot so simetrija čez ravnino h = 0 in pa feromagnetno in antiferomagnetno obnašanje za $J > 0$ in $J < 0$.\\\\
+\noindent Če variiramo oba J in h lahko narišemo naslednja 3D in contour grafa.
 
 \begin{tabular}{c c}
      \includegraphics[width = .5 \linewidth]{STFIM2.png}
      &  
      \includegraphics[width = .5 \linewidth]{STFIM3.png}\\
 \end{tabular}
-Grafa narisana preko plot3d() in plot\_contour().
+Grafa narisana preko plot3d() in plot\_contour(). \\\\
+
+\noindent Na grafu lahko opazimo naslednje lastnosti:
+\begin{itemize}
+    \item Simetrija čez ravnino $h = 0$, kar ni nepričakovano, saj je veriga sama po sebi simetričan. Če polje obremo v drugo smer lahko zato pričakujemo, da bo rezultat le prezrcaljena rešitev za polje v prvotno smer. To pa ne vpliva na magnetizacijo, ki je "izpovprečena" čez celo verigo.  
+
+    \item Če se osredotočimo na presek $h = 0$, vidimo, da se pri $J >> 0$ spini obnašajo kot feromagnet, saj so vsi spini poravnani. Za $J << 0$ pa lahko sumimo, da se obnaša kot antiferomagnet in so sosednji spini obrnjeni nasprotno. To lahko potrdimo, če izračunamo naslednjo količino in vidimo, da je zelo blizu 1.
+    \begin{equation}
+    |\frac{1}{N}\sum_{i=0}^N \sigma_i^z (-1)^i|
+    \end{equation}
+    \includegraphics[]{STFIM_antiferomag.png}
+
+    \item Na prvi pogled vidimo tudi, dase magnetizacija ustali a neki končni vrednosti okoli $0.2$, ko gre $h \rightarrow \infty$. To res velja za majhne sisteme, ampak za realne sisteme, kjer je $N \rightarrow \infty$, se ta končna vrednost bliža 0. To tendenco lahko vidimo v naslednjih grafih.
+
+    \hskip-4.5cm\begin{tabular}{c c}
+        \includegraphics[width = .7 \textwidth]{TFIM_3D_N=2.pdf} &  \includegraphics[width = .7 \textwidth]{TFIM_3D_N=6.pdf}\\
+        N = 2& N = 6\\
+        \includegraphics[width = .7 \textwidth]{TFIM_3D_N=8.pdf} &  \includegraphics[width = .7 \textwidth]{TFIM_3D_N=10.pdf}\\
+         N = 8 & N = 10 
+    \end{tabular}
+\end{itemize}
+
 
 
 \section{Sklopljeni verigi}
-Hamiltonian se glasi
+Še malce bolj komplicirana varianta Isingovega modela je ta, ki nas tu v resnici zanima. Tega dobimo tako, da dve verigi spinov, za kateri velja TFIM, sklopimo med sabo. Hamiltonian tega modela se glasi:
 \begin{equation}
     \hat{H} = \sum_{< i,j >} -J \hat{\sigma_{1i}^z} \hat{\sigma_{1j}^z} + \sum_{< i,j >} -J \hat{\sigma_{2i}^z} \hat{\sigma_{2j}^z} - h\sum_i \hat{\sigma_{1i}^x}- h\sum_i \hat{\sigma_{2i}^x} - J_T \sum_i \hat{\sigma_{1j}^z} \hat{\sigma_{2i}^z}
 \end{equation}
-in ga za dimenzije $N < 10$ lahko rešimo z direktno diagonalizacijo v doglednem času. Vse naslednje metode, predstavljene v tem poglavju se nahajajo v datoteki TFIM\_QuSpin\_2.py . Dobra mera za stanje sistema, ki nas bo tu zanimala, je magnetizacija, ki jo definiramo kot:
+Za dimenzije $N < 10$ lahko rešimo z direktno diagonalizacijo v doglednem času. Vse naslednje metode, predstavljene v tem poglavju se nahajajo v datoteki TFIM\_QuSpin\_2.py . Dobra mera za stanje sistema, ki nas bo tu zanimala, je zoped magnetizacija, ki jo definiramo kot:
+\begin{equation}
+    M = \frac{1}{N}\sum_{i=0}^N \sigma_{1i}^z + \frac{1}{N}\sum_{i=0}^N \sigma_{2i}^z
+\end{equation}\\
+
+\noindent Če zoped variiramo $J$ in $h$, pri fiksnem $J_T = 1$ in $N = 8$, dobimo naslednji graf:
+
+\includegraphics[]{TFIM2_3D_J_h_N=8.pdf}
 
 \noindent Če variiramo oba $h$ ter $J_T$ pri fiksnem $J = 1$ lahko narišemo 3D in contour grafa\\\\
 
@@ -69,8 +97,12 @@ in ga za dimenzije $N < 10$ lahko rešimo z direktno diagonalizacijo v doglednem
      \includegraphics[width = .5 \linewidth]{2TFIM1.png}
      &  
      \includegraphics[width = .5 \linewidth]{2TFIM2.png}\\
-\end{tabular}
-Grafa narisana preko plot3d() in plot\_contour().
+\end{tabular}////
+
+\noindent Grafa ko je fiksen $J$ in ko je fiksen $J_T$ sta si zelo podobna. To je zato, ker si lahko, prav tako kot si sklopitev z $J_T$ predstavljamo kot dve verigi dolžine N naloženi ena na drugo, predstavljamo sklopitev z $J$ kot N verig dolžine 2, naloženih ena na drugo.
+
+\section{Časovna evolucija sistema}
+
 
 
 \end{document}
