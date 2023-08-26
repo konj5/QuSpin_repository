@@ -44,11 +44,11 @@ def anti_magnetization(ground_state:np.ndarray) -> float:
     N = int(np.round(np.log2(len(ground_state))))
     for i in range(len(ground_state)):
         AMi = 0
-        statei = 2 *bin_array(i,N) - 1)
+        statei = 2 *bin_array(i,N) - 1
         for j in range(N):
             AMi += statei[j] * (-1)**j
         
-        AM += np.abs(AMi)
+        AM += (ground_state[i]**2) * np.abs(AMi)/N
     
     return AM
 
@@ -69,7 +69,7 @@ def main():
 def main_antiferomag():
     Ms = []
     hs = np.linspace(0,2,100)
-    J = 1
+    J = -1
     N = 8
     for h in hs:
         Ms.append(anti_magnetization(exactDiag(N,h,J)[1][:,0]))
@@ -108,6 +108,35 @@ def plot_3d():
     fig.add_axes(ax)
 
     plt.show()
+    
+def plot_3d_antiferomag():
+    n = 30
+    Ms_2d = np.zeros((n,n))
+    xdata, ydata, zdata = ([],[],[])
+    hs = np.linspace(-2,2,n)
+    Js = np.linspace(-1,1,n)
+    for i in range(n):
+        for j in range(n):
+            print(f"{i}, {j}")
+            Ms_2d[i,j] = anti_magnetization(exactDiag(8,hs[j],Js[i])[1][:,0])
+            xdata.append(Js[i])
+            ydata.append(hs[j])
+            zdata.append(Ms_2d[i,j])
+
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    #ax.scatter3D(xdata, ydata, zdata, c=zdata, cmap='Greens')
+    ax.plot_trisurf(xdata, ydata, zdata,cmap='viridis', edgecolor='none')
+    ax.set_xlabel("J")
+    ax.set_ylabel("h")
+    ax.set_zlabel("M")
+    
+    
+
+    fig.add_axes(ax)
+
+    plt.show()
+
 
 
 def plot_contour():
@@ -192,13 +221,12 @@ def plot_3d_variable_N():
 
 #main()
 
-main_antiferomag()
+#main_antiferomag()
 
-#plot_3d()
+#plot_3d_antiferomag()
 
 #plot_contour()
 
 #plot_variable_N()
 
 #plot_3d_variable_N()
-

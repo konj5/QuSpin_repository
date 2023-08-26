@@ -100,6 +100,36 @@ def main():
     plt.show()
 
 
+def plot_3d_J_h(JT:float = 1):
+    n = 30
+    Ms_2d = np.zeros((n,n))
+    xdata, ydata, zdata = ([],[],[])
+    hs = np.linspace(-5,5,n)
+    Js = np.linspace(-5,5,n)
+    JT = JT
+
+    for i in range(len(Js)):
+        for j in range(len(hs)):
+            print(f"{i}, {j}")
+            Ms_2d[i,j] = magnetization(exactDiag(N = 4,h = hs[j],J = Js[i],JT = JT)[1][:,0])[0]
+            xdata.append(Js[i])
+            ydata.append(hs[j])
+            zdata.append(Ms_2d[i,j])
+
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    #ax.scatter3D(xdata, ydata, zdata, c=zdata, cmap='Greens')
+    ax.plot_trisurf(xdata, ydata, zdata,cmap='viridis', edgecolor='none')
+    ax.set_xlabel("J")
+    ax.set_ylabel("h")
+    ax.set_zlabel("M")
+    
+    
+
+    fig.add_axes(ax)
+
+    plt.show()
+
 def plot_3d():
     n = 30
     Ms_2d = np.zeros((n,n))
@@ -131,7 +161,7 @@ def plot_3d():
     plt.show()
 
 def plot_contour():
-    n = 30
+    n = 100
     Ms_2d = np.zeros((n,n))
     xdata, ydata, zdata = ([],[],[])
     hs = np.linspace(-20,20,n)
@@ -150,7 +180,7 @@ def plot_contour():
     #f = interpolate.interp2d(x=xdata, y=ydata, z=zdata,kind="cubic")
 
     fig,ax=plt.subplots(1,1)
-    cp = ax.contourf(JTs, hs, Ms_2d)
+    cp = ax.contourf(JTs, hs, Ms_2d, levels = 30)
     fig.colorbar(cp)
     ax.set_xlabel('JT')
     ax.set_ylabel('h')
@@ -188,22 +218,46 @@ def plot_3d_variable_N():
 
         fig.savefig(f"TFIM2_3D_N={N}.pdf")
         plt.cla()
+        
+def plot_3d_variable_N_J_h(JT:float = 1):
+    for N in range(1,9):
+        n = 30
+        Ms_2d = np.zeros((n,n))
+        xdata, ydata, zdata = ([],[],[])
+        hs = np.linspace(-5,5,n)
+        Js = np.linspace(-5,5,n)
+        JT = JT
+
+        for i in range(len(Js)):
+            for j in range(len(hs)):
+                print(f"{i}, {j}")
+                Ms_2d[i,j] = magnetization(exactDiag(N = 4,h = hs[j],J = Js[i],JT = JT)[1][:,0])[0]
+                xdata.append(Js[i])
+                ydata.append(hs[j])
+                zdata.append(Ms_2d[i,j])
+
+        fig = plt.figure()
+        ax = plt.axes(projection='3d')
+        #ax.scatter3D(xdata, ydata, zdata, c=zdata, cmap='Greens')
+        ax.plot_trisurf(xdata, ydata, zdata,cmap='viridis', edgecolor='none')
+        ax.set_xlabel("JT")
+        ax.set_ylabel("h")
+        ax.set_zlabel("M")
+        ax.view_init(20, 200) 
+        
+
+        fig.add_axes(ax)
+
+        fig.savefig(f"TFIM2_3D_J_h_N={N}.pdf")
+        plt.cla()
 
 
 #main()
 
-#plot_3d()
+plot_3d()
 
-#plot_contour()
+#plot_3d_J_h()
 
-#plot_3d_variable_N()
+plot_contour()
 
-Ns = [i for i in range(1,8)]
-pairs = dict()
-for N in Ns:
-
-    E, eigv = exactDiag(N, h = 0, J = 1, JT = 0)
-
-    pairs[N] = eigv[:,0]
-    
-print(pairs)
+#plot_3d_variable_N_J_h()
