@@ -97,7 +97,7 @@ def energyComparison(N:int, hmax:float, J:float, a:float, drive:object):
 
     return (f"Exact ground state: {E0_exact}, Evolved: {E0_evolved}, difference: {np.abs(E0_exact-E0_evolved)}", [E0_exact, E0_evolved, np.abs(E0_exact-E0_evolved)])
 
-class linearDrive:
+class linearDriveDeprecated:
     t0 = 0
 
     def __init__(self, tmax, tend) -> None:
@@ -109,7 +109,28 @@ class linearDrive:
 
         return 1
     
-class exponentialDrive:
+class linearDrive:
+
+    def __init__(self, t0:float, tstart:float, tmax: float, tend:float) -> None:
+        assert(t0<=tstart)
+        assert(tstart<=tmax)
+        assert(tmax<=tend)
+        
+        self.tmax = tmax
+        self.tend = tend
+        self.t0 = t0
+        self.tstart = tstart
+
+    def drive(self, t:float, a:float) -> float:
+        if t < self.tstart:
+            return 0
+        if t < self.tmax:
+            return (t-self.tstart) / (self.tmax - self.tstart)
+        
+        return 1
+        
+    
+class exponentialDriveDeprecated:
 
     #In this setup optimal a appears to be ~0.0469
     
@@ -125,7 +146,28 @@ class exponentialDrive:
         else:
             return 1
         
-class fermiDiracDrive:
+class exponentialDrive:
+    
+    def __init__(self, t0:float, tstart:float, tmax: float, tend:float) -> None:
+        assert(t0<=tstart)
+        assert(tstart<=tmax)
+        assert(tmax<=tend)
+        
+        self.tmax = tmax
+        self.tend = tend
+        self.t0 = t0
+        self.tstart = tstart
+
+    def drive(self, t:float, a:float) -> float:
+        if t < self.tstart:
+            return 0
+        
+        if t < self.tmax:
+            return np.exp(a * (t -self.tstart - self.tmax) / (self.tmax - self.tstart))
+        
+        return 1
+        
+class fermiDiracDriveDeprecated:
 
     #optimum appears to be a ~ 0.049
 
@@ -140,17 +182,32 @@ class fermiDiracDrive:
             return 1 / (1 + np.exp(-a*t))
         else:
             return 1
+        
+class fermiDiracDrive_NON_FUNCTIONAL:
 
 
+    def __init__(self, t0:float, tend:float) -> None:
+        self.t0=t0
+        self.tend=tend
+
+    def drive(self, t:float, a:float) -> float:
+        if t < self.t0 + 10:
+            return 0
+        elif t < self.tend - 10:
+            return 1 / (1 + np.exp(-a*t))
+        else:
+            return 1
+
+"""
 N = 8
-resultLinear = energyComparison(N=N,hmax=1,J=1,a=0,drive=linearDrive(100,200))
-resultExponential = energyComparison(N=N,hmax=1,J=1,a=0.0469,drive=exponentialDrive(-100,100))
-resultFD = energyComparison(N=N,hmax=1,J=1,a=0.049,drive=exponentialDrive(-100,100))
+resultLinear = energyComparison(N=N,hmax=1,J=1,a=0,drive=linearDriveDeprecated(100,200))
+resultExponential = energyComparison(N=N,hmax=1,J=1,a=0.0469,drive=exponentialDriveDeprecated(-100,100))
+resultFD = energyComparison(N=N,hmax=1,J=1,a=0.049,drive=fermiDiracDriveDeprecated(-100,100))
 
 print(f"Linear -> {resultLinear[0]}")
 print(f"Exponential -> {resultExponential[0]}")
-print(f"Exponential -> {resultFD[0]}")
-
+print(f"FermiDirac -> {resultFD[0]}")
+"""
 
 def varyParameterA():
     diff = []
@@ -190,3 +247,33 @@ def varyParameterN():
 
 #varyParameterN()
 
+
+
+
+def evolveEnergy(N:int, J:float, hmax:float, a:float, drive:object):
+    #exact diagonalization
+    (E0_exact, trash) = exactDiag(N, hmax, J)
+    E0_exact = E0_exact[0]
+
+
+    #evolution
+    Es = energyTimeEvolution(N,hmax, J, a, drive.drive, drive.t0, drive.tend)
+    E0_evolved = Es[-1]
+    ts = np.linspace(drive.t0, drive.tend, 100)
+    
+    ds = []
+    for t in ts:
+        ds.append(drive.drive(t,a))
+    
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    ax1.plot(ts, ds)
+    #ax1.label("Gonilna funkcija")
+    ax2.plot(ts, Es)
+    ax2.axhline(y = E0_exact, linestyle = "dashed")
+    ax2.axhline(y = E0_evolved, linestyle = "dotted")
+    #ax2.label("Energija")
+    
+    plt.show()
+    
+evolveEnergy(N=14,J=1,hmax=1,a=0,drive=linearDriveDeprecated(100,200))
+evolveEnergy(N=14,J=1,hmax=1,a=0.0469,drive=exponentialDriveDeprecated(-100,100))

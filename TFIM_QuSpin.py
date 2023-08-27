@@ -223,6 +223,8 @@ def plot_3d_variable_N():
 
 #main_antiferomag()
 
+#plot_3d()
+
 #plot_3d_antiferomag()
 
 #plot_contour()

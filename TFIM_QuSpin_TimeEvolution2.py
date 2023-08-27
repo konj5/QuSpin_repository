@@ -48,7 +48,7 @@ def getOsnovnoStanje(N):
 
 
 
-def timeEvolution(N:int, hmax:float, J:float, JT:float, a:float, b:float, driveH:callable, driveJT:callable, t0:float, tmax:float):
+def timeEvolution(N:int, hmax:float, J:float, JT:float, a:float, b:float, driveH:callable, driveJT:callable, t0:float, tmax:float, startstate:list):
     #Veriga 1 [0 : N], veriga 2 [N:2N]
     h_field = [[-hmax, i] for i in range(2*N)] #Transverzalno polje
 
@@ -62,7 +62,7 @@ def timeEvolution(N:int, hmax:float, J:float, JT:float, a:float, b:float, driveH
     
     H = hamiltonian(static_spin, dynamic_spin, basis=spin_basis,dtype=np.float64)
 
-    return(H.evolve(v0=[0 if x != 0 else 1 for x in range(2**N)], t0 = 0, times=np.linspace(t0,tmax,100)))
+    return(H.evolve(v0=startstate, t0 = 0, times=np.linspace(t0,tmax,100)))
     
 
 def energyTimeEvolution(N:int, hmax:float, J:float, JT:float, a:float, b:float, driveH:callable, driveJT:callable, t0:float, tmax:float, startstate:list):
@@ -352,7 +352,7 @@ def varryParametersAB():  ##########################   KJE STA V RESNICI ZDAJ OP
     plt.show()
 
     
-varryParametersAB()
+#varryParametersAB()
 
 def varyParameterN():
     diffLin = []
