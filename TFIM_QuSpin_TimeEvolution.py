@@ -183,20 +183,26 @@ class fermiDiracDriveDeprecated:
         else:
             return 1
         
-class fermiDiracDrive_NON_FUNCTIONAL:
+class fermiDiracDrive:
 
-
-    def __init__(self, t0:float, tend:float) -> None:
-        self.t0=t0
-        self.tend=tend
+    def __init__(self, t0:float, tstart:float, tmax: float, tend:float) -> None:
+        assert(t0<=tstart)
+        assert(tstart<=tmax)
+        assert(tmax<=tend)
+        
+        self.tmax = tmax
+        self.tend = tend
+        self.t0 = t0
+        self.tstart = tstart
 
     def drive(self, t:float, a:float) -> float:
-        if t < self.t0 + 10:
+        if t < self.tstart:
             return 0
-        elif t < self.tend - 10:
-            return 1 / (1 + np.exp(-a*t))
-        else:
-            return 1
+        
+        if t < self.tmax:
+            return 1 / (1 + np.exp(-a * (t - (self.tstart + self.tmax)/2)))
+        
+        return 1
 
 """
 N = 8
@@ -250,30 +256,43 @@ def varyParameterN():
 
 
 
-def evolveEnergy(N:int, J:float, hmax:float, a:float, drive:object):
+def evolveEnergy(N:int, J:float, hmax:float, a:list, drives:list):
     #exact diagonalization
     (E0_exact, trash) = exactDiag(N, hmax, J)
     E0_exact = E0_exact[0]
 
 
     #evolution
-    Es = energyTimeEvolution(N,hmax, J, a, drive.drive, drive.t0, drive.tend)
-    E0_evolved = Es[-1]
-    ts = np.linspace(drive.t0, drive.tend, 100)
+    Ess = []
+    dss = []
+    for i in range(len(drives)):
+        Es = energyTimeEvolution(N,hmax, J, a[i], drives[i].drive, drives[i].t0, drives[i].tend)
+        ts = np.linspace(drives[i].t0, drives[i].tend, 100)
+        
+        ds = []
+        for t in ts:
+            ds.append(drives[i].drive(t,a[i]))
+            
+        Ess.append(Es)
+        dss.append(ds)
     
-    ds = []
-    for t in ts:
-        ds.append(drive.drive(t,a))
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
     
-    fig, (ax1, ax2) = plt.subplots(1, 2)
-    ax1.plot(ts, ds)
-    #ax1.label("Gonilna funkcija")
-    ax2.plot(ts, Es)
+    for i in range(len(Ess)):
+        ax1.plot(ts, dss[i])
+        ax2.plot(ts, Ess[i])
+        ax3.plot(ts[-10:-1], Ess[i][-10:-1])
+        
+    ax1.set_title("Gonilna funkcija")
+    ax2.set_title("E(t), črtkana črta je točna vrednost")
+    ax3.set_title("Končne energije")
+        
     ax2.axhline(y = E0_exact, linestyle = "dashed")
-    ax2.axhline(y = E0_evolved, linestyle = "dotted")
-    #ax2.label("Energija")
+    
     
     plt.show()
     
-evolveEnergy(N=14,J=1,hmax=1,a=0,drive=linearDriveDeprecated(100,200))
-evolveEnergy(N=14,J=1,hmax=1,a=0.0469,drive=exponentialDriveDeprecated(-100,100))
+    
+evolveEnergy(N=8,J=1,hmax=1,a=[0,4,0.13],drives=[linearDrive(0,1,100,110), exponentialDrive(0,1,100,110), fermiDiracDrive(0,1,100,110)])
+#evolveEnergy(N=14,J=1,hmax=1,a=[0,4,0.01],drives=[linearDrive(0,1,1000,1010), exponentialDrive(0,1,1000,1010), fermiDiracDrive(0,1,1000,1010)])
+    

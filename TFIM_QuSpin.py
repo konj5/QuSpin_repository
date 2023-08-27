@@ -56,7 +56,7 @@ def main():
     Ms = []
     hs = np.linspace(0,2,100)
     J = 1
-    N = 8
+    N = 10
     for h in hs:
         Ms.append(magnetization(exactDiag(N,h,J)[1][:,0]))
 
@@ -219,7 +219,7 @@ def plot_3d_variable_N():
 
 
 
-#main()
+main()
 
 #main_antiferomag()
 
