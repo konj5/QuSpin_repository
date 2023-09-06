@@ -220,7 +220,7 @@ def plot_3d_variable_N():
         plt.cla()
         
 def plot_3d_variable_N_J_h(JT:float = 1):
-    for N in range(8,1,-1):
+    for N in range(8,0,-1):
         n = 30
         Ms_2d = np.zeros((n,n))
         xdata, ydata, zdata = ([],[],[])
@@ -260,4 +260,6 @@ def plot_3d_variable_N_J_h(JT:float = 1):
 
 #plot_contour()
 
-#plot_3d_variable_N_J_h()
+#plot_3d_variable_N()
+
+plot_3d_variable_N_J_h()

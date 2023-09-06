@@ -80,8 +80,6 @@ def energyTimeEvolution(N:int, hmax:float, J:float, a:float, drive:callable, t0:
 
         Es.append(E)
 
-    #E = np.conjugate(endstate).dot(endstate)
-
     return Es
 
 def energyComparison(N:int, hmax:float, J:float, a:float, drive:object):
