@@ -220,7 +220,7 @@ def plot_3d_variable_N():
         plt.cla()
         
 def plot_3d_variable_N_J_h(JT:float = 1):
-    for N in range(1,9):
+    for N in range(8,1,-1):
         n = 30
         Ms_2d = np.zeros((n,n))
         xdata, ydata, zdata = ([],[],[])
@@ -240,7 +240,7 @@ def plot_3d_variable_N_J_h(JT:float = 1):
         ax = plt.axes(projection='3d')
         #ax.scatter3D(xdata, ydata, zdata, c=zdata, cmap='Greens')
         ax.plot_trisurf(xdata, ydata, zdata,cmap='viridis', edgecolor='none')
-        ax.set_xlabel("JT")
+        ax.set_xlabel("J")
         ax.set_ylabel("h")
         ax.set_zlabel("M")
         ax.view_init(20, 200) 
@@ -254,10 +254,10 @@ def plot_3d_variable_N_J_h(JT:float = 1):
 
 #main()
 
-plot_3d()
+#plot_3d()
 
 #plot_3d_J_h()
 
-plot_contour()
+#plot_contour()
 
 #plot_3d_variable_N_J_h()

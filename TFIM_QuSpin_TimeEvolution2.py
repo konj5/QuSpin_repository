@@ -110,8 +110,9 @@ def energyComparison(N:int, hmax:float, J:float, JT:float, a:float, b:float, dri
 
     #evolution
 
-    basestate = getOsnovnoStanje(N)
-
+    #basestate = getOsnovnoStanje(N)
+    #basestate = [1 if i == 0 else 0 for i in range(2**(2*N))]
+    
     Es = energyTimeEvolution(N,hmax, J, JT, a, b, drive.driveH, drive.driveJT, drive.t0, drive.tend, basestate)
     E0_evolved = Es[-1]
 
@@ -300,7 +301,7 @@ class fermiDiracDrive:
             else:
                 return 1
 
-"""
+
 N = 4
 resultLinear = energyComparison(N=N,hmax=1,J=1,JT=1,a=0, b=0,drive=linearDrive(100,200, mode="hJT"))
 resultExponential = energyComparison(N=N,hmax=1,J=1,JT=1,a=0.0469, b=0.0469,drive=exponentialDrive(-100,100, mode="hJT"))
@@ -308,8 +309,8 @@ resultFD = energyComparison(N=N,hmax=1,J=1, JT=1,a=0.049, b=0.049,drive=exponent
 
 print(f"Linear -> {resultLinear[0]}")
 print(f"Exponential -> {resultExponential[0]}")
-print(f"Exponential -> {resultFD[0]}")
-"""
+print(f"Fermi_Dirac -> {resultFD[0]}")
+
 
 def minimizeParametersAB():
 

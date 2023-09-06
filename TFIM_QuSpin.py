@@ -219,7 +219,7 @@ def plot_3d_variable_N():
 
 
 
-main()
+#main()
 
 #main_antiferomag()
 
