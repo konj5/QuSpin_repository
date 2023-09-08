@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt # plotting library
 from scipy import interpolate # polynomial interpolation library
 
 
+GreatCounter_TheMagnificscent = 0
+
 def bin_array(num:int, m:int) -> list:
     """Convert a positive integer num into an m-bit bit vector"""
     return np.array(list(np.binary_repr(num).zfill(m))).astype(np.int8)
@@ -38,7 +40,7 @@ def magnetization(ground_state:np.ndarray) -> float:
     return M
 
 
-def timeEvolution(N:int, hmax:float, J:float, a:float, drive, t0:float, tmax:float):
+def timeEvolution(N:int, hmax:float, J:float, a:float, drive:callable, t0:float, tmax:float):
     J_interaction = [[-J,i,i+1] for i in range(N-1)]
     static_spin = [["zz", J_interaction]]
 
@@ -157,11 +159,15 @@ class exponentialDrive:
         self.tstart = tstart
 
     def drive(self, t:float, a:float) -> float:
+        # f(tstart) = a
+        
+        k1 = np.log(a)/(self.tstart-self.tmax)
+        
         if t < self.tstart:
             return 0
         
         if t < self.tmax:
-            return np.exp(a * (t -self.tstart - self.tmax) / (self.tmax - self.tstart))
+            return np.exp(k1 * (t - self.tmax))
         
         return 1
         
@@ -194,11 +200,19 @@ class fermiDiracDrive:
         self.tstart = tstart
 
     def drive(self, t:float, a:float) -> float:
+        #Začetna in končna točka sta f(tstart) = a in f(tmax) = 1-a
+        
+        A = np.log(1/a - 1)
+        B = np.log(1/(1-a) - 1)
+        
+        k1 = (self.tstart * B - self.tmax * A) / (B - A)
+        k2 = - A / (self.tstart - k1)
+        
         if t < self.tstart:
             return 0
         
         if t < self.tmax:
-            return 1 / (1 + np.exp(-a * (t - (self.tstart + self.tmax)/2)))
+            return 1 / (1 + np.exp(-k2 * (t - k1)))
         
         return 1
 
@@ -251,13 +265,19 @@ def varyParameterN():
 
 #varyParameterN()
 
+E0_exactdict=dict()
+def getE0_exact(data):
+        if data in E0_exactdict.keys():
+            return E0_exactdict[data]
 
+        (E0_exact, basestate) = exactDiag(data[0], data[1], data[2])
+        E0_exactdict[data] = E0_exact[0]
+        return (E0_exact[0],basestate[:,0])
 
 
 def evolveEnergy(N:int, J:float, hmax:float, a:list, drives:list):
     #exact diagonalization
-    (E0_exact, trash) = exactDiag(N, hmax, J)
-    E0_exact = E0_exact[0]
+    E0_exact = getE0_exact((N,hmax,J))[0]
 
 
     #evolution
@@ -289,8 +309,87 @@ def evolveEnergy(N:int, J:float, hmax:float, a:list, drives:list):
     
     
     plt.show()
+
+def evolveEnergyData(N:int, J:float, hmax:float, a:list, drives:list):
+    #exact diagonalization
+    E0_exact = getE0_exact((N,hmax,J))[0]
+
+    #evolution
+    Ess = []
+    dss = []
+    for i in range(len(drives)):
+        print(i)
+        Es = energyTimeEvolution(N,hmax, J, a[i], drives[i].drive, drives[i].t0, drives[i].tend)
+        ts = np.linspace(drives[i].t0, drives[i].tend, 100)
+        
+        ds = []
+        for t in ts:
+            ds.append(drives[i].drive(t,a[i]))
+            
+        Ess.append(Es)
+        dss.append(ds)
+    
+    return (Ess,dss, E0_exact)
+
+def evolveDotProduct(N:int, J:float, hmax:float, a:list, drives:list):
+    #exact diagonalization
+    basestate = getE0_exact((N,hmax,J))[1]
+
+
+    #evolution
+    dotss = []
+    dss = []
+    for i in range(len(drives)):
+        print(i)
+        vs = timeEvolution(N,hmax, J, a[i], drives[i].drive, drives[i].t0, drives[i].tend)
+        
+        dots = []
+        for j in range(len(vs[0,:])):
+            dots.append(vs[:,j].dot(basestate))
+        
+        ts = np.linspace(drives[i].t0, drives[i].tend, 100)
+        
+        ds = []
+        for t in ts:
+            ds.append(drives[i].drive(t,a[i]))
+            
+        dotss.append(dots)
+        dss.append(ds)
+    
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+    
+    for i in range(len(dotss)):
+        ax1.plot(ts, dss[i])
+        ax2.plot(ts, dotss[i])
+        ax3.plot(ts[-10:-1], dotss[i][-10:-1])
+        
+    ax1.set_title("Gonilna funkcija")
+    ax2.set_title("E(t), črtkana črta je točna vrednost")
+    ax3.set_title("Končne energije")
+        
+    ax2.axhline(y = 1, linestyle = "dashed")
     
     
-evolveEnergy(N=8,J=1,hmax=1,a=[0,4,0.13],drives=[linearDrive(0,1,100,110), exponentialDrive(0,1,100,110), fermiDiracDrive(0,1,100,110)])
-#evolveEnergy(N=14,J=1,hmax=1,a=[0,4,0.01],drives=[linearDrive(0,1,1000,1010), exponentialDrive(0,1,1000,1010), fermiDiracDrive(0,1,1000,1010)])
+    plt.show()
     
+    
+    
+#evolveEnergy(N=8,J=1,hmax=1,a=[0,4,0.13],drives=[linearDrive(0,1,100,110), exponentialDrive(0,1,100,110), fermiDiracDrive(0,1,100,110)])
+#evolveEnergy(N=8,J=1,hmax=1,a=[0,4,0.01],drives=[linearDrive(0,1,1000,1010), exponentialDrive(0,1,1000,1010), fermiDiracDrive(0,1,1000,1010)])
+
+t0 = 0
+tstart = 1
+tmax = 1000
+tend = tmax + 10
+#evolveDotProduct(N=8,J=1,hmax=1,a=[0,0.001,0.001],drives=[linearDrive(t0,tstart,tmax,tend), exponentialDrive(t0,tstart,tmax,tend), fermiDiracDrive(t0,tstart,tmax,tend)])
+#evolveDotProduct(N=8,J=1,hmax=1,a=np.linspace(20**-5, 10**-1, 4),drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
+
+
+"""
+a = np.linspace(10**-16,0.1,500)
+(Ess, dss, E0_exact) = evolveEnergyData(N=8,J=1,hmax=1,a=a,drives=[fermiDiracDrive(0,1,1000,1100) for _ in a])
+Ess = np.array(Ess)
+
+plt.plot(a, Ess[:,-1]-E0_exact)
+plt.show()
+"""
