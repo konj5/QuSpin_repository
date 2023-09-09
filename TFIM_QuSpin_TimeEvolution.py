@@ -267,11 +267,13 @@ def varyParameterN():
 
 E0_exactdict=dict()
 def getE0_exact(data):
+        data = tuple(data)
+        	
         if data in E0_exactdict.keys():
             return E0_exactdict[data]
 
         (E0_exact, basestate) = exactDiag(data[0], data[1], data[2])
-        E0_exactdict[data] = E0_exact[0]
+        E0_exactdict[data] = (E0_exact[0],basestate[:,0])
         return (E0_exact[0],basestate[:,0])
 
 
@@ -346,6 +348,8 @@ def evolveDotProduct(N:int, J:float, hmax:float, a:list, drives:list):
         dots = []
         for j in range(len(vs[0,:])):
             dots.append(vs[:,j].dot(basestate))
+            print(vs[:,j])
+            print(basestate)
         
         ts = np.linspace(drives[i].t0, drives[i].tend, 100)
         
@@ -375,21 +379,40 @@ def evolveDotProduct(N:int, J:float, hmax:float, a:list, drives:list):
     
     
 #evolveEnergy(N=8,J=1,hmax=1,a=[0,4,0.13],drives=[linearDrive(0,1,100,110), exponentialDrive(0,1,100,110), fermiDiracDrive(0,1,100,110)])
-#evolveEnergy(N=8,J=1,hmax=1,a=[0,4,0.01],drives=[linearDrive(0,1,1000,1010), exponentialDrive(0,1,1000,1010), fermiDiracDrive(0,1,1000,1010)])
+evolveEnergy(N=8,J=1,hmax=1,a=[0,0.01,0.01],drives=[linearDrive(0,1,1000,1010), exponentialDrive(0,1,1000,1010), fermiDiracDrive(0,1,1000,1010)])
 
 t0 = 0
 tstart = 1
 tmax = 1000
 tend = tmax + 10
-#evolveDotProduct(N=8,J=1,hmax=1,a=[0,0.001,0.001],drives=[linearDrive(t0,tstart,tmax,tend), exponentialDrive(t0,tstart,tmax,tend), fermiDiracDrive(t0,tstart,tmax,tend)])
-#evolveDotProduct(N=8,J=1,hmax=1,a=np.linspace(20**-5, 10**-1, 4),drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
 
+#evolveDotProduct(N=8,J=1,hmax=1,a=[0,0.001,0.001],drives=[linearDrive(t0,tstart,tmax,tend), exponentialDrive(t0,tstart,tmax,tend), fermiDiracDrive(t0,tstart,tmax,tend)])
+#evolveDotProduct(N=8,J=1,hmax=1,a=np.linspace(20**-5, 10**-2, 4),drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
 
 """
-a = np.linspace(10**-16,0.1,500)
-(Ess, dss, E0_exact) = evolveEnergyData(N=8,J=1,hmax=1,a=a,drives=[fermiDiracDrive(0,1,1000,1100) for _ in a])
-Ess = np.array(Ess)
+na,nt = 10,10
+a = np.linspace(10**-16,0.1,na)
+tms = np.linspace(100,1000, nt)
 
-plt.plot(a, Ess[:,-1]-E0_exact)
+xdata,ydata,zdata = ([],[],[])
+for tm in tms:
+    print(tm)
+    (Ess, dss, E0_exact) = evolveEnergyData(N=8,J=1,hmax=1,a=a,drives=[fermiDiracDrive(0,1,1000,1100) for _ in a])
+    Ess = np.array(Ess)
+    
+    for i in range(len(a)):
+        xdata.append(a[i])
+        ydata.append(tm)
+        zdata.append(Ess[i,-1]-E0_exact)
+
+fig = plt.figure()
+ax = plt.axes(projection='3d')
+ax.plot_trisurf(xdata, ydata, zdata,cmap='viridis', edgecolor='none')
+ax.set_xlabel("a")
+ax.set_ylabel("tmax")
+ax.set_zlabel("delta E")
+ax.view_init(20, 200)        
+
+fig.add_axes(ax)
 plt.show()
 """
