@@ -19,7 +19,7 @@ def exactDiag(N:int, h:float, J:float) -> tuple:
     #NO PERIODIC BORDER
     J_interaction = [[-J,i,i+1] for i in range(N-1)] #Isingova interakcija
 
-    static_spin = [["zz", J_interaction], ["x", h_field]]
+    static_spin = [["zz", J_interaction], ["z",[[0,i] for i in range(N)]], ["x", h_field]]
     dynamic_spin = []
 
     spin_basis = spin_basis_1d(N)
@@ -42,7 +42,7 @@ def magnetization(ground_state:np.ndarray) -> float:
 
 def timeEvolution(N:int, hmax:float, J:float, a:float, drive:callable, t0:float, tmax:float):
     J_interaction = [[-J,i,i+1] for i in range(N-1)]
-    static_spin = [["zz", J_interaction]]
+    static_spin = [["zz", J_interaction], ["z",[[0,i] for i in range(N)]]]
 
     dynamic_list = [["x",[[-hmax,i] for i in range(N)],drive,[a]]]
 
@@ -58,7 +58,7 @@ def timeEvolution(N:int, hmax:float, J:float, a:float, drive:callable, t0:float,
 
 def energyTimeEvolution(N:int, hmax:float, J:float, a:float, drive:callable, t0:float, tmax:float):
     J_interaction = [[-J,i,i+1] for i in range(N-1)]
-    static_spin = [["zz", J_interaction]]
+    static_spin = [["zz", J_interaction], ["z",[[0,i] for i in range(N)]]]
 
     dynamic_list = [["x",[[-hmax,i] for i in range(N)],drive,[a]]]
 
@@ -170,24 +170,8 @@ class exponentialDrive:
             return np.exp(k1 * (t - self.tmax))
         
         return 1
-        
+               
 class fermiDiracDriveDeprecated:
-
-    #optimum appears to be a ~ 0.049
-
-    def __init__(self, t0:float, tend:float) -> None:
-        self.t0=t0
-        self.tend=tend
-
-    def drive(self, t:float, a:float) -> float:
-        if t < self.t0 + 10:
-            return 0
-        elif t < self.tend - 10:
-            return 1 / (1 + np.exp(-a*t))
-        else:
-            return 1
-        
-class fermiDiracDrive:
 
     def __init__(self, t0:float, tstart:float, tmax: float, tend:float) -> None:
         assert(t0<=tstart)
@@ -207,6 +191,31 @@ class fermiDiracDrive:
         
         k1 = (self.tstart * B - self.tmax * A) / (B - A)
         k2 = - A / (self.tstart - k1)
+        
+        if t < self.tstart:
+            return 0
+        
+        if t < self.tmax:
+            return 1 / (1 + np.exp(-k2 * (t - k1)))
+        
+        return 1
+    
+class fermiDiracDrive:
+
+    def __init__(self, t0:float, tstart:float, _: float, __:float) -> None:
+        assert(t0<=tstart)
+        self.t0 = t0
+        self.tstart = tstart
+
+    def drive(self, t:float, k2:float) -> float:
+        #Začetna in končna točka sta f(tstart) = 10**-8 in f(tmax) = 1-10**-8
+        
+        A = np.log(1/10**-8 - 1)
+        B = np.log(1/(1-10**-8) - 1)
+        
+        k1 = self.tstart + A/k2
+        self.tmax = (self.tstart * B - (B-A)*k1) / A
+        self.tend = self.tmax + 10
         
         if t < self.tstart:
             return 0
@@ -286,6 +295,9 @@ def evolveEnergy(N:int, J:float, hmax:float, a:list, drives:list):
     Ess = []
     dss = []
     for i in range(len(drives)):
+        #initialize a for Fermi_Dirac
+        drives[i].drive(0,a[i])
+
         Es = energyTimeEvolution(N,hmax, J, a[i], drives[i].drive, drives[i].t0, drives[i].tend)
         ts = np.linspace(drives[i].t0, drives[i].tend, 100)
         
@@ -298,16 +310,25 @@ def evolveEnergy(N:int, J:float, hmax:float, a:list, drives:list):
     
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
     
+    colors = ["red", "blue", "orange", "green", "purple", "pink"]
+    
+    tempe = [E0_exact]
     for i in range(len(Ess)):
-        ax1.plot(ts, dss[i])
-        ax2.plot(ts, Ess[i])
-        ax3.plot(ts[-10:-1], Ess[i][-10:-1])
-        
+        tempe.append(Ess[i][-1])
+
+    for i in range(len(Ess)):
+        ax1.plot(ts, dss[i], color = colors[i])
+        ax2.plot(ts, Ess[i], color = colors[i])
+        ax3.axhline(y = Ess[i][-1], label = f"{a[i]}", color = colors[i])
+        ax3.legend()
+
     ax1.set_title("Gonilna funkcija")
     ax2.set_title("E(t), črtkana črta je točna vrednost")
     ax3.set_title("Končne energije")
         
     ax2.axhline(y = E0_exact, linestyle = "dashed")
+    ax3.axhline(y = E0_exact, linestyle = "dashed")
+    ax3.set_ylim((np.amin(tempe) - (np.amax(tempe) - np.amin(tempe))/2, np.amax(tempe) + (np.amax(tempe) - np.amin(tempe))/2))
     
     
     plt.show()
@@ -320,7 +341,11 @@ def evolveEnergyData(N:int, J:float, hmax:float, a:list, drives:list):
     Ess = []
     dss = []
     for i in range(len(drives)):
+        #initialize a for Fermi_Dirac
+        drives[i].drive(0,a[i])
+
         print(i)
+
         Es = energyTimeEvolution(N,hmax, J, a[i], drives[i].drive, drives[i].t0, drives[i].tend)
         ts = np.linspace(drives[i].t0, drives[i].tend, 100)
         
@@ -342,14 +367,15 @@ def evolveDotProduct(N:int, J:float, hmax:float, a:list, drives:list):
     dotss = []
     dss = []
     for i in range(len(drives)):
+        #initialize a for Fermi_Dirac
+        drives[i].drive(0,a[i])
+        
         print(i)
         vs = timeEvolution(N,hmax, J, a[i], drives[i].drive, drives[i].t0, drives[i].tend)
         
         dots = []
         for j in range(len(vs[0,:])):
-            dots.append(vs[:,j].dot(basestate))
-            print(vs[:,j])
-            print(basestate)
+            dots.append(np.abs(vs[:,j].dot(basestate))**2)
         
         ts = np.linspace(drives[i].t0, drives[i].tend, 100)
         
@@ -362,55 +388,101 @@ def evolveDotProduct(N:int, J:float, hmax:float, a:list, drives:list):
     
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
     
+    colors = ["red", "blue", "orange", "green", "purple", "pink"]
+    
+    tempe = [1]
     for i in range(len(dotss)):
-        ax1.plot(ts, dss[i])
-        ax2.plot(ts, dotss[i])
-        ax3.plot(ts[-10:-1], dotss[i][-10:-1])
-        
+        tempe.append(dotss[i][-1])
+
+    for i in range(len(dotss)):
+        ax1.plot(ts, dss[i], color = colors[i])
+        ax2.plot(ts, dotss[i], color = colors[i])
+        ax3.axhline(y = dotss[i][-1], label = f"{a[i]}", color = colors[i])
+        ax3.legend()
+
     ax1.set_title("Gonilna funkcija")
-    ax2.set_title("E(t), črtkana črta je točna vrednost")
-    ax3.set_title("Končne energije")
+    ax2.set_title("DotProduct^2(t)")
+    ax3.set_title("Končne vrednosti")
         
-    ax2.axhline(y = 1, linestyle = "dashed")
+    #ax2.axhline(y = 1, linestyle = "dashed")
+    ax3.axhline(y = 1, linestyle = "dashed")
+    ax3.set_ylim((np.amin(tempe) - (np.amax(tempe) - np.amin(tempe))/2, np.amax(tempe) + (np.amax(tempe) - np.amin(tempe))/2))
     
     
     plt.show()
+
+def getK2toFitTmax(tstart:float, tmax:float):
+    A = np.log(1/10**-8 - 1)
+    B = np.log(1/(1-10**-8) - 1)
+    
+    k1 = (tstart * B - tmax * A) / (B - A)
+    k2 = - A / (tstart - k1)
+
+    return(k2)
     
     
     
-#evolveEnergy(N=8,J=1,hmax=1,a=[0,4,0.13],drives=[linearDrive(0,1,100,110), exponentialDrive(0,1,100,110), fermiDiracDrive(0,1,100,110)])
-evolveEnergy(N=8,J=1,hmax=1,a=[0,0.01,0.01],drives=[linearDrive(0,1,1000,1010), exponentialDrive(0,1,1000,1010), fermiDiracDrive(0,1,1000,1010)])
+#evolveEnergy(N=8,J=1,hmax=1,a=[0,0.001,getK2toFitTmax(1,100)],drives=[linearDrive(0,1,100,110), exponentialDrive(0,1,100,110), fermiDiracDrive(0,1,100,110)])
+#evolveEnergy(N=8,J=1,hmax=0.1,a=[0,0.01,getK2toFitTmax(1,1000)],drives=[linearDrive(0,1,1000,1010), exponentialDrive(0,1,1000,1010), fermiDiracDrive(0,1,1000,1010)])
+
+#evolveEnergy(N=8,J=1,hmax=0.1,a=np.linspace(0.01,10,4),drives=[fermiDiracDrive(0,1,"lol","pointless") for _ in range(4)])
+
+
+#ts = np.linspace(2,1000,100)
+#ks = [getK2toFitTmax(1,ts[i]) for i in range(len(ts))]
+ks = np.linspace(30,0.07,100)
+(Ess, trash, E0_exact) = evolveEnergyData(8,1,0.1,ks,[fermiDiracDrive(0,1,0,0) for _ in range(len(ks))])
+Ess = np.array(Ess)
+dE = Ess[:,-1] - E0_exact
+
+plt.plot(ks, dE)
+plt.scatter(ks,dE, s = 3, color = "black")
+plt.xlabel("k2")
+plt.ylabel("E-E0")
+plt.show()
+
+
 
 t0 = 0
 tstart = 1
 tmax = 1000
 tend = tmax + 10
 
+
 #evolveDotProduct(N=8,J=1,hmax=1,a=[0,0.001,0.001],drives=[linearDrive(t0,tstart,tmax,tend), exponentialDrive(t0,tstart,tmax,tend), fermiDiracDrive(t0,tstart,tmax,tend)])
-#evolveDotProduct(N=8,J=1,hmax=1,a=np.linspace(20**-5, 10**-2, 4),drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
+
+#evolveDotProduct(N=8,J=2,hmax=0.1,a=[getK2toFitTmax(1,i) for i in np.linspace(50,1000,4)],drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
 
 """
-na,nt = 10,10
-a = np.linspace(10**-16,0.1,na)
-tms = np.linspace(100,1000, nt)
+nJ,nh = 10,10
+a = getK2toFitTmax(1,1000)
+Js = np.linspace(-1,1,nJ)
+hs = np.linspace(-1,1,nh)
 
 xdata,ydata,zdata = ([],[],[])
-for tm in tms:
-    print(tm)
-    (Ess, dss, E0_exact) = evolveEnergyData(N=8,J=1,hmax=1,a=a,drives=[fermiDiracDrive(0,1,1000,1100) for _ in a])
-    Ess = np.array(Ess)
-    
-    for i in range(len(a)):
-        xdata.append(a[i])
-        ydata.append(tm)
-        zdata.append(Ess[i,-1]-E0_exact)
+for J in Js:
+    for hmax in hs:
+        print((J,hmax))
+
+        #states = timeEvolution(N=8, hmax=hmax, J=J,a=a,drive=fermiDiracDrive(0,1,"","").drive, t0=0, tmax=1010)
+        #endstate = states[-1]
+        
+        #M = magnetization(endstate)
+
+        (Ess,trash,E0_exact) = evolveEnergyData(8,J,hmax,[a],[fermiDiracDrive(0,1,0,0)])
+        Ess = np.array(Ess)
+        E = Ess[0,-1] - E0_exact
+
+        xdata.append(J)
+        ydata.append(hmax)
+        zdata.append(E)
 
 fig = plt.figure()
 ax = plt.axes(projection='3d')
 ax.plot_trisurf(xdata, ydata, zdata,cmap='viridis', edgecolor='none')
-ax.set_xlabel("a")
-ax.set_ylabel("tmax")
-ax.set_zlabel("delta E")
+ax.set_xlabel("J")
+ax.set_ylabel("hmax")
+ax.set_zlabel("E - E0")
 ax.view_init(20, 200)        
 
 fig.add_axes(ax)
