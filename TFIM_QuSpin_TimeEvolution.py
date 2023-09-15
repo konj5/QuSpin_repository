@@ -7,6 +7,9 @@ from scipy import interpolate # polynomial interpolation library
 
 GreatCounter_TheMagnificscent = 0
 
+hz = 0
+
+
 def bin_array(num:int, m:int) -> list:
     """Convert a positive integer num into an m-bit bit vector"""
     return np.array(list(np.binary_repr(num).zfill(m))).astype(np.int8)
@@ -19,7 +22,7 @@ def exactDiag(N:int, h:float, J:float) -> tuple:
     #NO PERIODIC BORDER
     J_interaction = [[-J,i,i+1] for i in range(N-1)] #Isingova interakcija
 
-    static_spin = [["zz", J_interaction], ["z",[[0,i] for i in range(N)]], ["x", h_field]]
+    static_spin = [["zz", J_interaction], ["z",[[hz,i] for i in range(N)]], ["x", h_field]]
     dynamic_spin = []
 
     spin_basis = spin_basis_1d(N)
@@ -42,7 +45,7 @@ def magnetization(ground_state:np.ndarray) -> float:
 
 def timeEvolution(N:int, hmax:float, J:float, a:float, drive:callable, t0:float, tmax:float):
     J_interaction = [[-J,i,i+1] for i in range(N-1)]
-    static_spin = [["zz", J_interaction], ["z",[[0,i] for i in range(N)]]]
+    static_spin = [["zz", J_interaction], ["z",[[hz,i] for i in range(N)]]]
 
     dynamic_list = [["x",[[-hmax,i] for i in range(N)],drive,[a]]]
 
@@ -430,6 +433,8 @@ def getK2toFitTmax(tstart:float, tmax:float):
 
 #ts = np.linspace(2,1000,100)
 #ks = [getK2toFitTmax(1,ts[i]) for i in range(len(ts))]
+
+"""
 ks = np.linspace(30,0.07,100)
 (Ess, trash, E0_exact) = evolveEnergyData(8,1,0.1,ks,[fermiDiracDrive(0,1,0,0) for _ in range(len(ks))])
 Ess = np.array(Ess)
@@ -441,7 +446,7 @@ plt.xlabel("k2")
 plt.ylabel("E-E0")
 plt.show()
 
-
+"""
 
 t0 = 0
 tstart = 1
@@ -449,9 +454,9 @@ tmax = 1000
 tend = tmax + 10
 
 
-#evolveDotProduct(N=8,J=1,hmax=1,a=[0,0.001,0.001],drives=[linearDrive(t0,tstart,tmax,tend), exponentialDrive(t0,tstart,tmax,tend), fermiDiracDrive(t0,tstart,tmax,tend)])
+evolveDotProduct(N=8,J=1,hmax=1,a=[0,0.001,getK2toFitTmax(tstart,tmax)],drives=[linearDrive(t0,tstart,tmax,tend), exponentialDrive(t0,tstart,tmax,tend), fermiDiracDrive(t0,tstart,tmax,tend)])
 
-#evolveDotProduct(N=8,J=2,hmax=0.1,a=[getK2toFitTmax(1,i) for i in np.linspace(50,1000,4)],drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
+evolveDotProduct(N=8,J=2,hmax=0.1,a=[getK2toFitTmax(1,i) for i in np.linspace(50,1000,4)],drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
 
 """
 nJ,nh = 10,10

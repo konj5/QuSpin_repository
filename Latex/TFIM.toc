@@ -4,10 +4,10 @@
 \contentsline {subsection}{\numberline {2.1}Ekzaktna diagonalizacija TFIM modela}{1}{}%
 \contentsline {subsubsection}{\numberline {2.1.1}Bazna stanja in Hamiltonian}{1}{}%
 \contentsline {subsection}{\numberline {2.2}Magnetizacija}{2}{}%
-\contentsline {section}{\numberline {3}Sklopljeni verigi}{8}{}%
-\contentsline {subsection}{\numberline {3.1}Eksaktna diagonalizacija}{8}{}%
-\contentsline {subsection}{\numberline {3.2}Magnetizacija}{8}{}%
-\contentsline {section}{\numberline {4}Časovna evolucija sistema}{10}{}%
-\contentsline {subsection}{\numberline {4.1}Numerična integracija}{10}{}%
-\contentsline {subsection}{\numberline {4.2}Energija}{11}{}%
-\contentsline {subsection}{\numberline {4.3}Skalarni produkt}{12}{}%
+\contentsline {section}{\numberline {3}Sklopljeni verigi}{7}{}%
+\contentsline {subsection}{\numberline {3.1}Eksaktna diagonalizacija}{7}{}%
+\contentsline {subsection}{\numberline {3.2}Magnetizacija}{7}{}%
+\contentsline {section}{\numberline {4}Časovna evolucija sistema}{9}{}%
+\contentsline {subsection}{\numberline {4.1}Numerična integracija}{9}{}%
+\contentsline {subsection}{\numberline {4.2}Energija}{10}{}%
+\contentsline {subsection}{\numberline {4.3}Skalarni produkt}{11}{}%
