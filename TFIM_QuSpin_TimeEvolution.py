@@ -541,6 +541,72 @@ def evolveAntiMagnetization(N:int, J:float, hmax:float, a:list, drives:list):
     
     plt.show()
 
+def evolvePQA_st(N:int, J:float, hmax:float, a:list, drives:list):
+    #exact diagonalization
+    basestate = getE0_exact((N,hmax,J))[1]
+
+
+    #evolution
+    exactdotss = []
+    dotss = []
+    dss = []
+    tss = []
+    for i in range(len(drives)):
+        #initialize a for Fermi_Dirac
+        drives[i].drive(0,a[i])
+        
+        print(i)
+        vs = timeEvolution(N,hmax, J, a[i], drives[i].drive, drives[i].t0, drives[i].tend)
+
+        ts = np.linspace(drives[i].t0, drives[i].tend, 100)
+
+        exactstates = np.zeros_like(vs)
+        for j in range(len(ts)):
+            print(ts[j])
+            exactstates[:,j] = exactDiag(N=N,J=J, h = hmax * drives[i].drive(ts[j],a[i]))[1][:,0]
+        
+        
+        dots = []
+        exactdots = []
+        for j in range(len(vs[0,:])):
+            dots.append(np.abs(vs[:,j].dot(basestate))**2)
+            exactdots.append(np.abs(exactstates[:,j].dot(basestate))**2)
+        
+        
+        ds = []
+        for t in ts:
+            ds.append(drives[i].drive(t,a[i]))
+            
+        dotss.append(dots)
+        exactdotss.append(exactdots)
+        dss.append(ds)
+        tss.append(ts)
+    
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+    
+    colors = ["red", "blue", "orange", "green", "purple", "pink"]
+    
+    tempe = [1]
+    for i in range(len(dotss)):
+        tempe.append(dotss[i][-1])
+
+    for i in range(len(dotss)):
+        ax1.plot(tss[i], dss[i], color = colors[i])
+        ax2.plot(tss[i], dotss[i], color = colors[i])
+        ax2.plot(tss[i], exactdotss[i], color = colors[i], linestyle = "dashed")
+        ax3.axhline(y = dotss[i][-1], label = f"{a[i]}", color = colors[i])
+        #ax3.legend()
+
+    ax1.set_title("Gonilna funkcija")
+    ax2.set_title("P (polna črta), P_st (črtkana)")
+    ax3.set_title("Končne vrednosti")
+        
+    #ax2.axhline(y = 1, linestyle = "dashed")
+    ax3.axhline(y = 1, linestyle = "dashed")
+    ax3.set_ylim((np.amin(tempe) - (np.amax(tempe) - np.amin(tempe))/2, np.amax(tempe) + (np.amax(tempe) - np.amin(tempe))/2))
+
+    plt.show()
+
 def getK2toFitTmax(tstart:float, tmax:float):
     A = np.log(1/10**-8 - 1)
     B = np.log(1/(1-10**-8) - 1)
@@ -635,5 +701,7 @@ AM = anti_magnetization(vs[:,0])
 print(f"{dot}, {M}, {AM}")
 """
 
-evolveMagnetization(N=8,J=2,hmax=0.5,a=[getK2toFitTmax(1,i) for i in np.linspace(50,1000,4)],drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
-evolveAntiMagnetization(N=8,J=2,hmax=0.5,a=[getK2toFitTmax(1,i) for i in np.linspace(50,1000,4)],drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
+#evolveMagnetization(N=8,J=2,hmax=0.5,a=[getK2toFitTmax(1,i) for i in np.linspace(50,1000,4)],drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
+#evolveAntiMagnetization(N=8,J=2,hmax=0.5,a=[getK2toFitTmax(1,i) for i in np.linspace(50,1000,4)],drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
+
+evolvePQA_st(N=8,J=1,hmax=0.1,a=[getK2toFitTmax(tstart,tmax)], drives=[fermiDiracDrive(t0,tstart,tmax,tend)])
