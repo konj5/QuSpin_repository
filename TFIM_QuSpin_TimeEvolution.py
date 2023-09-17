@@ -38,9 +38,23 @@ def magnetization(ground_state:np.ndarray) -> float:
     M = 0
     N = int(np.round(np.log2(len(ground_state))))
     for i in range(len(ground_state)):
-        M += np.abs(ground_state[i]**2 * np.sum(2 *bin_array(i,N) - 1)) / N
+        M += np.abs(np.abs(ground_state[i]**2) * np.sum(2 *bin_array(i,N) - 1)) / N
     
     return M
+
+def anti_magnetization(ground_state:np.ndarray) -> float:
+    
+    AM = 0
+    N = int(np.round(np.log2(len(ground_state))))
+    for i in range(len(ground_state)):
+        AMi = 0
+        statei = 2 *bin_array(i,N) - 1
+        for j in range(N):
+            AMi += statei[j] * (-1)**j
+        
+        AM += (np.abs(ground_state[i]**2)) * np.abs(AMi)/N
+    
+    return AM
 
 
 def timeEvolution(N:int, hmax:float, J:float, a:float, drive:callable, t0:float, tmax:float):
@@ -297,6 +311,7 @@ def evolveEnergy(N:int, J:float, hmax:float, a:list, drives:list):
     #evolution
     Ess = []
     dss = []
+    tss = []
     for i in range(len(drives)):
         #initialize a for Fermi_Dirac
         drives[i].drive(0,a[i])
@@ -310,20 +325,22 @@ def evolveEnergy(N:int, J:float, hmax:float, a:list, drives:list):
             
         Ess.append(Es)
         dss.append(ds)
+        tss.append(ts)
     
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
     
     colors = ["red", "blue", "orange", "green", "purple", "pink"]
     
-    tempe = [E0_exact]
+    #tempe = [E0_exact]
+    tempe = []
     for i in range(len(Ess)):
         tempe.append(Ess[i][-1])
 
     for i in range(len(Ess)):
-        ax1.plot(ts, dss[i], color = colors[i])
-        ax2.plot(ts, Ess[i], color = colors[i])
+        ax1.plot(tss[i], dss[i], color = colors[i])
+        ax2.plot(tss[i], Ess[i], color = colors[i])
         ax3.axhline(y = Ess[i][-1], label = f"{a[i]}", color = colors[i])
-        ax3.legend()
+        #ax3.legend()
 
     ax1.set_title("Gonilna funkcija")
     ax2.set_title("E(t), črtkana črta je točna vrednost")
@@ -369,6 +386,7 @@ def evolveDotProduct(N:int, J:float, hmax:float, a:list, drives:list):
     #evolution
     dotss = []
     dss = []
+    tss = []
     for i in range(len(drives)):
         #initialize a for Fermi_Dirac
         drives[i].drive(0,a[i])
@@ -388,6 +406,7 @@ def evolveDotProduct(N:int, J:float, hmax:float, a:list, drives:list):
             
         dotss.append(dots)
         dss.append(ds)
+        tss.append(ts)
     
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
     
@@ -398,10 +417,10 @@ def evolveDotProduct(N:int, J:float, hmax:float, a:list, drives:list):
         tempe.append(dotss[i][-1])
 
     for i in range(len(dotss)):
-        ax1.plot(ts, dss[i], color = colors[i])
-        ax2.plot(ts, dotss[i], color = colors[i])
+        ax1.plot(tss[i], dss[i], color = colors[i])
+        ax2.plot(tss[i], dotss[i], color = colors[i])
         ax3.axhline(y = dotss[i][-1], label = f"{a[i]}", color = colors[i])
-        ax3.legend()
+        #ax3.legend()
 
     ax1.set_title("Gonilna funkcija")
     ax2.set_title("DotProduct^2(t)")
@@ -410,7 +429,115 @@ def evolveDotProduct(N:int, J:float, hmax:float, a:list, drives:list):
     #ax2.axhline(y = 1, linestyle = "dashed")
     ax3.axhline(y = 1, linestyle = "dashed")
     ax3.set_ylim((np.amin(tempe) - (np.amax(tempe) - np.amin(tempe))/2, np.amax(tempe) + (np.amax(tempe) - np.amin(tempe))/2))
+
+    plt.show()
+    return (dotss, tss)
+
+def evolveMagnetization(N:int, J:float, hmax:float, a:list, drives:list):
+    #exact diagonalization
+    basestate = getE0_exact((N,hmax,J))[1]
+
+
+    #evolution
+    dotss = []
+    dss = []
+    tss = []
+    for i in range(len(drives)):
+        #initialize a for Fermi_Dirac
+        drives[i].drive(0,a[i])
+        
+        print(i)
+        vs = timeEvolution(N,hmax, J, a[i], drives[i].drive, drives[i].t0, drives[i].tend)
+        
+        dots = []
+        for j in range(len(vs[0,:])):
+            dots.append(magnetization(vs[:,j]))
+        
+        ts = np.linspace(drives[i].t0, drives[i].tend, 100)
+        
+        ds = []
+        for t in ts:
+            ds.append(drives[i].drive(t,a[i]))
+            
+        dotss.append(dots)
+        dss.append(ds)
+        tss.append(ts)
     
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+    
+    colors = ["red", "blue", "orange", "green", "purple", "pink"]
+    
+    tempe = [1]
+    for i in range(len(dotss)):
+        tempe.append(dotss[i][-1])
+
+    for i in range(len(dotss)):
+        ax1.plot(tss[i], dss[i], color = colors[i])
+        ax2.plot(tss[i], dotss[i], color = colors[i])
+        ax3.axhline(y = dotss[i][-1], label = f"{a[i]}", color = colors[i])
+        #ax3.legend()
+
+    ax1.set_title("Gonilna funkcija")
+    ax2.set_title("MAgnetizacija")
+    ax3.set_title("Končne vrednosti")
+        
+    #ax2.axhline(y = 1, linestyle = "dashed")
+    ax3.axhline(y = 1, linestyle = "dashed")
+    ax3.set_ylim((np.amin(tempe) - (np.amax(tempe) - np.amin(tempe))/2, np.amax(tempe) + (np.amax(tempe) - np.amin(tempe))/2))
+    
+    plt.show()
+
+def evolveAntiMagnetization(N:int, J:float, hmax:float, a:list, drives:list):
+    #exact diagonalization
+    basestate = getE0_exact((N,hmax,J))[1]
+
+
+    #evolution
+    dotss = []
+    dss = []
+    tss = []
+    for i in range(len(drives)):
+        #initialize a for Fermi_Dirac
+        drives[i].drive(0,a[i])
+        
+        print(i)
+        vs = timeEvolution(N,hmax, J, a[i], drives[i].drive, drives[i].t0, drives[i].tend)
+        
+        dots = []
+        for j in range(len(vs[0,:])):
+            dots.append(anti_magnetization(vs[:,j]))
+        
+        ts = np.linspace(drives[i].t0, drives[i].tend, 100)
+        
+        ds = []
+        for t in ts:
+            ds.append(drives[i].drive(t,a[i]))
+            
+        dotss.append(dots)
+        dss.append(ds)
+        tss.append(ts)
+    
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+    
+    colors = ["red", "blue", "orange", "green", "purple", "pink"]
+    
+    tempe = [1]
+    for i in range(len(dotss)):
+        tempe.append(dotss[i][-1])
+
+    for i in range(len(dotss)):
+        ax1.plot(tss[i], dss[i], color = colors[i])
+        ax2.plot(tss[i], dotss[i], color = colors[i])
+        ax3.axhline(y = dotss[i][-1], label = f"{a[i]}", color = colors[i])
+        #ax3.legend()
+
+    ax1.set_title("Gonilna funkcija")
+    ax2.set_title("Antimegnetizacija)")
+    ax3.set_title("Končne vrednosti")
+        
+    #ax2.axhline(y = 1, linestyle = "dashed")
+    ax3.axhline(y = 1, linestyle = "dashed")
+    ax3.set_ylim((np.amin(tempe) - (np.amax(tempe) - np.amin(tempe))/2, np.amax(tempe) + (np.amax(tempe) - np.amin(tempe))/2))
     
     plt.show()
 
@@ -427,26 +554,28 @@ def getK2toFitTmax(tstart:float, tmax:float):
     
 #evolveEnergy(N=8,J=1,hmax=1,a=[0,0.001,getK2toFitTmax(1,100)],drives=[linearDrive(0,1,100,110), exponentialDrive(0,1,100,110), fermiDiracDrive(0,1,100,110)])
 #evolveEnergy(N=8,J=1,hmax=0.1,a=[0,0.01,getK2toFitTmax(1,1000)],drives=[linearDrive(0,1,1000,1010), exponentialDrive(0,1,1000,1010), fermiDiracDrive(0,1,1000,1010)])
+#evolveEnergy(N=8,J=1,hmax=0.1,a=[0,0.01,getK2toFitTmax(1,10000)],drives=[linearDrive(0,1,10000,10100), exponentialDrive(0,1,10000,10100), fermiDiracDrive(0,1,10000,10100)])
 
-#evolveEnergy(N=8,J=1,hmax=0.1,a=np.linspace(0.01,10,4),drives=[fermiDiracDrive(0,1,"lol","pointless") for _ in range(4)])
+#evolveEnergy(N=8,J=1,hmax=0.1,a=[0.01, 0.1, 1, 10],drives=[fermiDiracDrive(0,1,"lol","pointless") for _ in range(4)])
 
 
 #ts = np.linspace(2,1000,100)
 #ks = [getK2toFitTmax(1,ts[i]) for i in range(len(ts))]
 
 """
-ks = np.linspace(30,0.07,100)
+ks = np.linspace(2,0.01,200)
 (Ess, trash, E0_exact) = evolveEnergyData(8,1,0.1,ks,[fermiDiracDrive(0,1,0,0) for _ in range(len(ks))])
 Ess = np.array(Ess)
 dE = Ess[:,-1] - E0_exact
 
 plt.plot(ks, dE)
-plt.scatter(ks,dE, s = 3, color = "black")
+#plt.scatter(ks,dE, s = 3, color = "black")
 plt.xlabel("k2")
 plt.ylabel("E-E0")
+plt.savefig("K2.svg")
 plt.show()
-
 """
+
 
 t0 = 0
 tstart = 1
@@ -454,9 +583,9 @@ tmax = 1000
 tend = tmax + 10
 
 
-evolveDotProduct(N=8,J=1,hmax=1,a=[0,0.001,getK2toFitTmax(tstart,tmax)],drives=[linearDrive(t0,tstart,tmax,tend), exponentialDrive(t0,tstart,tmax,tend), fermiDiracDrive(t0,tstart,tmax,tend)])
+#evolveDotProduct(N=8,J=1,hmax=1,a=[0,0.001,getK2toFitTmax(tstart,tmax)],drives=[linearDrive(t0,tstart,tmax,tend), exponentialDrive(t0,tstart,tmax,tend), fermiDiracDrive(t0,tstart,tmax,tend)])
 
-evolveDotProduct(N=8,J=2,hmax=0.1,a=[getK2toFitTmax(1,i) for i in np.linspace(50,1000,4)],drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
+#evolveDotProduct(N=8,J=2,hmax=0.1,a=[getK2toFitTmax(1,i) for i in np.linspace(50,1000,4)],drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
 
 """
 nJ,nh = 10,10
@@ -493,3 +622,18 @@ ax.view_init(20, 200)
 fig.add_axes(ax)
 plt.show()
 """
+
+"""
+basestate = getE0_exact((8,0.1,1))[1]
+tmax = 400
+vs = timeEvolution(N=8,hmax=0.1, J=1, a=getK2toFitTmax(1,tmax), drive = fermiDiracDrive(0,1,-1,-1).drive, t0=0, tmax=tmax)
+
+dot = np.abs(vs[:,0].dot(basestate))**2
+M = magnetization(vs[:,0])
+AM = anti_magnetization(vs[:,0])
+
+print(f"{dot}, {M}, {AM}")
+"""
+
+evolveMagnetization(N=8,J=2,hmax=0.5,a=[getK2toFitTmax(1,i) for i in np.linspace(50,1000,4)],drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
+evolveAntiMagnetization(N=8,J=2,hmax=0.5,a=[getK2toFitTmax(1,i) for i in np.linspace(50,1000,4)],drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
