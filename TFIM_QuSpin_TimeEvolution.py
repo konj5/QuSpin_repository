@@ -7,7 +7,7 @@ from scipy import interpolate # polynomial interpolation library
 
 GreatCounter_TheMagnificscent = 0
 
-hz = 0
+hz = 0.01
 
 
 def bin_array(num:int, m:int) -> list:
@@ -29,7 +29,7 @@ def exactDiag(N:int, h:float, J:float) -> tuple:
 
     H = hamiltonian(static_spin, dynamic_spin, basis=spin_basis,dtype=np.float64)
 
-    E, eigvect = H.eigsh(k=1,which = "SA")
+    E, eigvect = H.eigsh(k=2,which = "SA")
 
     return (E, eigvect)
 
@@ -38,7 +38,7 @@ def magnetization(ground_state:np.ndarray) -> float:
     M = 0
     N = int(np.round(np.log2(len(ground_state))))
     for i in range(len(ground_state)):
-        M += np.abs(np.abs(ground_state[i]**2) * np.sum(2 *bin_array(i,N) - 1)) / N
+        M += np.abs(ground_state[i])**2 * np.sum(2 *bin_array(i,N) - 1) / N
     
     return M
 
@@ -69,8 +69,10 @@ def timeEvolution(N:int, hmax:float, J:float, a:float, drive:callable, t0:float,
 
     #print(spin_basis[0])
     #print(bin_array(spin_basis[0], m = N))
+    
+    groundstate = exactDiag(N,0,J)[1][:,0]
 
-    return(H.evolve(v0=[0 if x != 0 else 1 for x in range(2**N)], t0 = 0, times=np.linspace(t0,tmax,100)))
+    return(H.evolve(v0=groundstate, t0 = 0, times=np.linspace(t0,tmax,100)))
     
 
 def energyTimeEvolution(N:int, hmax:float, J:float, a:float, drive:callable, t0:float, tmax:float):
@@ -645,11 +647,11 @@ plt.show()
 
 t0 = 0
 tstart = 1
-tmax = 1000
+tmax = 8000
 tend = tmax + 10
 
 
-#evolveDotProduct(N=8,J=1,hmax=1,a=[0,0.001,getK2toFitTmax(tstart,tmax)],drives=[linearDrive(t0,tstart,tmax,tend), exponentialDrive(t0,tstart,tmax,tend), fermiDiracDrive(t0,tstart,tmax,tend)])
+#evolveDotProduct(N=4,J=1,hmax=1,a=[0,0.001,getK2toFitTmax(tstart,tmax)],drives=[linearDrive(t0,tstart,tmax,tend), exponentialDrive(t0,tstart,tmax,tend), fermiDiracDrive(t0,tstart,tmax,tend)])
 
 #evolveDotProduct(N=8,J=2,hmax=0.1,a=[getK2toFitTmax(1,i) for i in np.linspace(50,1000,4)],drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
 
@@ -704,4 +706,4 @@ print(f"{dot}, {M}, {AM}")
 #evolveMagnetization(N=8,J=2,hmax=0.5,a=[getK2toFitTmax(1,i) for i in np.linspace(50,1000,4)],drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
 #evolveAntiMagnetization(N=8,J=2,hmax=0.5,a=[getK2toFitTmax(1,i) for i in np.linspace(50,1000,4)],drives=[fermiDiracDrive(t0,tstart,tmax,tend) for i in range(4)])
 
-evolvePQA_st(N=8,J=1,hmax=0.1,a=[getK2toFitTmax(tstart,tmax)], drives=[fermiDiracDrive(t0,tstart,tmax,tend)])
+evolvePQA_st(N=8,J=1,hmax=3,a=[getK2toFitTmax(tstart,tmax)], drives=[fermiDiracDrive(t0,tstart,tmax,tend)])
