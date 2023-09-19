@@ -15,17 +15,17 @@ def bin_array(num:int, m:int) -> list:
     return np.array(list(np.binary_repr(num).zfill(m))).astype(np.int8)
 
 
-def exactDiag(N:int, hx:float, J:float) -> tuple:
+def exactDiag(hx:float, J:float) -> tuple:
 
-    h_field = [[-hx,i] for i in range(N)] #Transverzalno polje
+    h_field = [[-hx,i] for i in range(8)] #Transverzalno polje
 
     #NO PERIODIC BORDER
-    J_interaction = [[-J,i,i+1] for i in range(N-1)] #Isingova interakcija
+    J_interaction = [[-J,0,3],[-J,0,5],[-J,3,1],[-J,3,6],[J,3,4],[-J,1,4],[-J,6,4],[-J,4,2],[-J,4,7],[-J,2,7]] #Isingova interakcija
 
-    static_spin = [["zz", J_interaction], ["z",[[hz,i] for i in range(N)]], ["x", h_field]]
+    static_spin = [["zz", J_interaction], ["z",[[hz,i] for i in range(8)]], ["x", h_field]]
     dynamic_spin = []
 
-    spin_basis = spin_basis_1d(N)
+    spin_basis = spin_basis_1d(8)
 
     H = hamiltonian(static_spin, dynamic_spin, basis=spin_basis,dtype=np.float64)
 
@@ -57,20 +57,20 @@ def anti_magnetization(ground_state:np.ndarray) -> float:
     return AM
 
 
-def timeEvolution(N:int, hx:float, J:float, a:float, drive:callable, t0:float, tmax:float):
-    J_interaction = [[-J,i,i+1] for i in range(N-1)]
-    static_spin = [["zz", J_interaction], ["z",[[hz,i] for i in range(N)]], ["x",[[-hx,i] for i in range(N)]]]
+def timeEvolution(hx:float, J:float, a:float, drive:callable, t0:float, tmax:float):
+    J_interaction = [[-J,0,3],[-J,0,5],[-J,3,1],[-J,3,6],[J,3,4],[-J,1,4],[-J,6,4],[-J,4,2],[-J,4,7],[-J,2,7]]
+    static_spin = [["zz", J_interaction], ["z",[[hz,i] for i in range(8)]], ["x",[[-hx,i] for i in range(8)]]]
 
-    dynamic_list = [["x",[[-1,i] for i in range(N)],drive,[a]]]
+    dynamic_list = [["x",[[-1,i] for i in range(8)],drive,[a]]]
 
-    spin_basis = spin_basis_1d(N)
+    spin_basis = spin_basis_1d(8)
 
     H = hamiltonian(static_spin, dynamic_list, basis=spin_basis,dtype=np.float64)
 
     #print(spin_basis[0])
     #print(bin_array(spin_basis[0], m = N))
     
-    groundstate = exactDiag(N,hx + drive(garbage=a,t=t0),J)[1][:,0]
+    groundstate = exactDiag(hx + drive(garbage=a,t=t0),J)[1][:,0]
 
     #groundstate = [0 if i not in (0,2**N-1) else 1/np.sqrt(2) for i in range(2**N)]
 
@@ -134,15 +134,15 @@ def getE0_exact(data):
         if data in E0_exactdict.keys():
             return E0_exactdict[data]
 
-        (E0_exact, basestate) = exactDiag(data[0], data[1], data[2])
+        (E0_exact, basestate) = exactDiag(data[0], data[1])
         E0_exactdict[data] = (E0_exact[0],basestate[:,0])
         return (E0_exact[0],basestate[:,0])
 
 
 
-def evolvePQA_st(N:int, J:float, hx:float, a:list, drives:list):
+def evolvePQA_st(J:float, hx:float, a:list, drives:list):
     #exact diagonalization
-    basestate = getE0_exact((N,hx,J))[1]
+    basestate = getE0_exact((hx,J))[1]
 
 
     #evolution
@@ -155,7 +155,7 @@ def evolvePQA_st(N:int, J:float, hx:float, a:list, drives:list):
         drives[i].drive(0,a[i])
         
         print(i)
-        vs = timeEvolution(N,hx, J, a[i], drives[i].drive, drives[i].t0, drives[i].tend)
+        vs = timeEvolution(hx, J, a[i], drives[i].drive, drives[i].t0, drives[i].tend)
 
 
         ts = np.linspace(drives[i].t0, drives[i].tend, 100)
@@ -163,7 +163,7 @@ def evolvePQA_st(N:int, J:float, hx:float, a:list, drives:list):
         exactstates = np.zeros_like(vs)
         for j in range(len(ts)):
             print(ts[j])
-            exactstates[:,j] = exactDiag(N=N,J=J, hx = hx + drives[i].drive(ts[j],a[i]))[1][:,0]
+            exactstates[:,j] = exactDiag(J=J, hx = hx + drives[i].drive(ts[j],a[i]))[1][:,0]
         
         
         dots = []
@@ -216,9 +216,9 @@ def getK2toFitTmax(tstart:float, tmax:float):
 
     return(k2)
 
-evolvePQA_st(N = 4, J=1, hx=0, a = [""], drives=[HarmonicDrive(t0 = 0.1, tend=1000)])
-evolvePQA_st(N = 4, J=1, hx=0, a = [""], drives=[RootHarmonicDrive(t0 = 0.1, tend=1000)])
-evolvePQA_st(N = 4, J=1, hx=0, a = [""], drives=[LogHarmonicDrive(t0 = 0.1, tend=1000)])
+evolvePQA_st(J=1, hx=0, a = [""], drives=[HarmonicDrive(t0 = 0.1, tend=1000)])
+evolvePQA_st(J=1, hx=0, a = [""], drives=[RootHarmonicDrive(t0 = 0.1, tend=1000)])
+evolvePQA_st(J=1, hx=0, a = [""], drives=[LogHarmonicDrive(t0 = 0.1, tend=1000)])
 
 #Kako izbirati a in tend-t0 ==> zih neka povezava
 # tend določi a, tako da je hx(tend) = hx(inf) + endtolerance

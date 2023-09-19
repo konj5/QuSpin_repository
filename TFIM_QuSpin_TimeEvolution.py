@@ -72,7 +72,7 @@ def timeEvolution(N:int, hmax:float, J:float, a:float, drive:callable, t0:float,
     
     groundstate = exactDiag(N,0,J)[1][:,0]
 
-    return(H.evolve(v0=groundstate, t0 = 0, times=np.linspace(t0,tmax,100)))
+    return(H.evolve(v0=groundstate, t0 = t0, times=np.linspace(t0,tmax,100)))
     
 
 def energyTimeEvolution(N:int, hmax:float, J:float, a:float, drive:callable, t0:float, tmax:float):
