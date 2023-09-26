@@ -45,9 +45,9 @@ def magnetization(ground_state:np.ndarray) -> tuple:
         for j in range(N,2*N,1):
             m2 += state[j]
 
-        M += np.abs(np.abs(ground_state[i]**2 * (m1+m2) / (2*N)))
-        M1+= np.abs(ground_state[i]**2 * m1 / N)
-        M2+= np.abs(ground_state[i]**2 * m2 / N)
+        M += np.abs(ground_state[i]**2) * (m1+m2) / (2*N)
+        M1+= np.abs(ground_state[i]**2) * m1 / N
+        M2+= np.abs(ground_state[i]**2) * m2 / N
         
     
     return (M ,M1, M2)
@@ -69,12 +69,13 @@ def anti_magnetization(ground_state:np.ndarray) -> tuple:
         for j in range(N,2*N,1):
             m2 += state[j] * (-1)**j
 
-        M += np.abs(np.abs(ground_state[i]**2 * (m1+m2) / (2*N)))
-        M1+= np.abs(ground_state[i]**2 * m1 / N)
-        M2+= np.abs(ground_state[i]**2 * m2 / N)
+        M += np.abs(ground_state[i]**2) * (m1+m2) / (2*N)
+        M1+= np.abs(ground_state[i]**2) * m1 / N
+        M2+= np.abs(ground_state[i]**2) * m2 / N
         
     
     return (M ,M1, M2)
+
 
 def main():
     M1s = []

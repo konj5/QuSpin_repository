@@ -77,7 +77,7 @@ def timeEvolution(hx:float, J:float, a:float, drive:callable, t0:float, tmax:flo
     return(H.evolve(v0=groundstate, t0 = t0, times=np.linspace(t0,tmax,100)))
     
 
-endtolerance = 10**-1
+endtolerance = 10**-3
 
 class HarmonicDrive:
 
@@ -189,16 +189,18 @@ def evolvePQA_st(J:float, hx:float, a:list, drives:list):
     tempe = []
     for i in range(len(dotss)):
         tempe.append(dotss[i][-1])
+        tempe.append(exactdotss[i][-1])
 
     for i in range(len(dotss)):
         ax1.plot(tss[i], dss[i], color = colors[i])
         ax2.plot(tss[i], dotss[i], color = colors[i])
         ax2.plot(tss[i], exactdotss[i], color = colors[i], linestyle = "dashed")
         ax3.axhline(y = dotss[i][-1], label = f"{a[i]}", color = colors[i])
+        ax3.axhline(y = exactdotss[i][-1], label = f"{a[i]}", color = colors[i], linestyle = "dashed")
         #ax3.legend()
 
     ax1.set_title("Gonilna funkcija")
-    ax2.set_title("P (polna črta), P_st (črtkana)")
+    ax2.set_title("P (polna črta), P_st (črtkana) - Frustrirani model")
     ax3.set_title("Končne vrednosti")
         
     #ax2.axhline(y = 1, linestyle = "dashed")

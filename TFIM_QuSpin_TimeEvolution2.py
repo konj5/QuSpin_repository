@@ -189,12 +189,14 @@ def evolvePQA_st(N:int, J:float, hx:float, a:list, drives:list):
     tempe = []
     for i in range(len(dotss)):
         tempe.append(dotss[i][-1])
+        tempe.append(exactdotss[i][-1])
 
     for i in range(len(dotss)):
         ax1.plot(tss[i], dss[i], color = colors[i])
         ax2.plot(tss[i], dotss[i], color = colors[i])
         ax2.plot(tss[i], exactdotss[i], color = colors[i], linestyle = "dashed")
         ax3.axhline(y = dotss[i][-1], label = f"{a[i]}", color = colors[i])
+        ax3.axhline(y = exactdotss[i][-1], label = f"{a[i]}", color = colors[i], linestyle = "dashed")
         #ax3.legend()
 
     ax1.set_title("Gonilna funkcija")
@@ -207,6 +209,38 @@ def evolvePQA_st(N:int, J:float, hx:float, a:list, drives:list):
 
     plt.show()
 
+
+def evolvePQA_st_data(N:int, J:float, hx:float, a:float, drive:object):
+    #exact diagonalization
+    basestate = getE0_exact((N,hx,J))[1]
+
+
+    #evolution
+    vs = timeEvolution(N,hx, J, a, drive.drive, drive.t0, drive.tend)
+
+
+    ts = np.linspace(drive.t0, drive.tend, 100)
+
+    exactstates = np.zeros_like(vs)
+    for j in range(len(ts)):
+        print(ts[j])
+        exactstates[:,j] = exactDiag(N=N,J=J, hx = hx + drive.drive(ts[j],a))[1][:,0]
+    
+    
+    dots = []
+    exactdots = []
+    for j in range(len(vs[0,:])):
+        dots.append(np.abs(vs[:,j].dot(basestate))**2)
+        exactdots.append(np.abs(exactstates[:,j].dot(basestate))**2)
+    
+    
+    ds = []
+    for t in ts:
+        ds.append(drive.drive(t,a))
+        
+    
+    return (ts, ds, dots, exactdots)
+
 def getK2toFitTmax(tstart:float, tmax:float):
     A = np.log(1/10**-8 - 1)
     B = np.log(1/(1-10**-8) - 1)
@@ -216,9 +250,9 @@ def getK2toFitTmax(tstart:float, tmax:float):
 
     return(k2)
 
-evolvePQA_st(N = 4, J=1, hx=0, a = [""], drives=[HarmonicDrive(t0 = 0.1, tend=1000)])
-evolvePQA_st(N = 4, J=1, hx=0, a = [""], drives=[RootHarmonicDrive(t0 = 0.1, tend=1000)])
-evolvePQA_st(N = 4, J=1, hx=0, a = [""], drives=[LogHarmonicDrive(t0 = 0.1, tend=1000)])
+#evolvePQA_st(N = 4, J=1, hx=0, a = [""], drives=[HarmonicDrive(t0 = 0.1, tend=1000)])
+#evolvePQA_st(N = 4, J=1, hx=0, a = [""], drives=[RootHarmonicDrive(t0 = 0.1, tend=1000)])
+#evolvePQA_st(N = 4, J=1, hx=0, a = [""], drives=[LogHarmonicDrive(t0 = 0.1, tend=1000)])
 
 #Kako izbirati a in tend-t0 ==> zih neka povezava
 # tend določi a, tako da je hx(tend) = hx(inf) + endtolerance
