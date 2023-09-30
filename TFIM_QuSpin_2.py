@@ -15,7 +15,7 @@ def exactDiag(N:int, h:float, J:float, JT:float) -> tuple:
     h_field = [[-h, i] for i in range(2*N)] #Transverzalno polje
 
     J_interaction = [[-J,i,i+1] for i in range(2*N-1) if i != N-1]  #Isingova interakcija
-
+)
     JT_interaction =[[-JT,i,N+i] for i in range(N)] #sklopitev med verigama
 
     static_spin = [["zz", J_interaction], ["x", h_field], ["zz", JT_interaction]]

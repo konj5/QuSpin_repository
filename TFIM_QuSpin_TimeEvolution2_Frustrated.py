@@ -74,7 +74,7 @@ def timeEvolution(hx:float, J:float, a:float, drive:callable, t0:float, tmax:flo
 
     #groundstate = [0 if i not in (0,2**N-1) else 1/np.sqrt(2) for i in range(2**N)]
 
-    return(H.evolve(v0=groundstate, t0 = t0, times=np.linspace(t0,tmax,100)))
+    return(H.evolve(v0=groundstate, t0 = t0, times=np.linspace(t0,tmax,1000)))
     
 
 endtolerance = 10**-3
