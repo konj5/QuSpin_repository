@@ -4,6 +4,7 @@ from quspin.operators import hamiltonian # Hamiltonians and operators
 from quspin.basis import spin_basis_1d# Hilbert space spin basis
 import numpy as np # generic math functions
 import matplotlib.pyplot as plt # plotting library
+import pickle
 
 
 N = 4
@@ -40,12 +41,12 @@ y1s = [hxDrive.drive(t,"trash") for t in ts]
 y2s = [JTDrive.drive(t,k) for t in ts]
 
 
-
+"""
 plt.plot(ts, y1s, label = "$h_x$")
 plt.plot(ts, y2s, label = "$J_T$")
 plt.legend()
 plt.show()
-
+"""
 
 #Magnetizacija primerjava
 M1s = [TwoChain.magnetization(vs2[:,i])[1] for i in range(len(vs2[0,:]))]
@@ -55,13 +56,14 @@ vs1 = OneChain.timeEvolution(N = N, J = J, drive=hxDrive.drive, hx = hxend, a = 
 
 MOneChain = [OneChain.magnetization(vs1[:,i]) for i in range(len(vs1[0,:]))]
 
+"""
 plt.plot(ts, M1s, label = "$M_1$")
 plt.plot(ts, M2s, label = "$M_2$")
 plt.plot(ts, MOneChain, label = "$M_{one chain}$")
 plt.title("Magnetizacija")
 plt.legend()
 plt.show()
-
+"""
 
 
 
@@ -98,12 +100,39 @@ def getHamiltonianChainOneChain(N:int, hx:float, J:float):
 
 Eonechains = [np.real(np.conjugate(vs1[:,i]).dot(getHamiltonianChainOneChain(N=N, J=J, hx = hxDrive.drive(ts[i],"trash")).dot(vs1[:,i]))) for i in range(len(vs1[0,:]))]
 
+"""
 plt.plot(ts, E1s, label = "1. veriga")
 plt.plot(ts, E2s, label = "2. veriga")
 plt.plot(ts, Eonechains, label = "Enoverižni primer")
 plt.title("Energija")
 plt.legend()
 plt.show()
+"""
+
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+
+ax1.plot(ts, y1s, label = "$h_x$")
+ax1.plot(ts, y2s, label = "$J_T$")
+ax1.legend()
+
+ax2.plot(ts, M1s, label = "$M_1$")
+ax2.plot(ts, M2s, label = "$M_2$")
+ax2.plot(ts, MOneChain, label = "$M_{one chain}$")
+ax2.set_title("Magnetizacija")
+ax2.legend()
+
+ax3.plot(ts, E1s, label = "1. veriga")
+ax3.plot(ts, E2s, label = "2. veriga")
+ax3.plot(ts, Eonechains, label = "Enoverižni primer")
+ax3.set_title("Energija")
+ax3.legend()
+
+fig.suptitle(f"N={N}, t0={t0}, tend={tend}, hxend={hxend},hx2={hx2}, JT={JT}, hxstart={hxstart}")
+fig.tight_layout()
+
+plt.show()
+
+pickle.dump(fig, open(f'Grafi {N}{t0}{tend}{hxend}{hx2}{JT}{hxstart}.pickle', 'wb'))
 
 
 #plt.plot(ts1, dost1)
@@ -119,6 +148,8 @@ plt.show()
 #ugotovitve
 
 #-> če je hstart preveč stran od hend, je magnetizacija čisto uničena -> ?
+#-> manjši N je slabše?
+#-> res bi rad primerjal same valovne funkcije!
 
 """
 #Zanimive nastavitve
