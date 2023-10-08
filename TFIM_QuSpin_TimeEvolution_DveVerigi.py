@@ -1,41 +1,70 @@
-from quspin.operators import hamiltonian # Hamiltonians and operators
-from quspin.basis import spin_basis_1d# Hilbert space spin basis
-import numpy as np # generic math functions
-import matplotlib.pyplot as plt # plotting library
+from quspin.operators import hamiltonian  # Hamiltoniani in operatorji
+from quspin.basis import spin_basis_1d  # Spinov prostor Hilbertovega prostora
+import numpy as np  # Generične matematične funkcije
+import matplotlib.pyplot as plt  # Knjižnica za risanje grafov
+
+hz = 0.01  # Frekvenca magnetnega polja
 
 
-hz = 0.01
+def bin_array(num: int, m: int) -> list:
+    """
+    Pretvori pozitivno celo število `num` v m-bitni bitni vektor.
 
+    Args:
+        num (int): Pozitivno celo število za pretvorbo.
+        m (int): Število bitov v bitnem vektorju.
 
-def bin_array(num:int, m:int) -> list:
-    """Convert a positive integer num into an m-bit bit vector"""
+    Returns:
+        list: M-seznam, ki predstavlja m-bitni bitni vektor.
+    """
     return np.array(list(np.binary_repr(num).zfill(m))).astype(np.int8)
 
 
-def exactDiag(N:int, hx1:float, hx2:float, J:float, JT:float) -> tuple:
+def exactDiag(N: int, hx1: float, hx2: float, J: float, JT: float) -> tuple:
+    """
+    Izračuna energijsko lastno vrednost in pripadajoči lastni vektor za podane parametre s kvantnim Hamiltonianom.
 
-    #Veriga 1 [0 : N], veriga 2 [N:2N]
-    hx1_field = [[-hx1, i] for i in range(N)] #Transverzalno polje
-    hx2_field = [[-hx2, N+i] for i in range(N)] #Transverzalno polje
+    Args:
+        N (int): Število spinov v sistemu.
+        hx1 (float): Moč transverzalnega magnetnega polja za verigo 1.
+        hx2 (float): Moč transverzalnega magnetnega polja za verigo 2.
+        J (float): Moč Isingove interakcije med sosednjimi spini v verigi.
+        JT (float): Sklopitev med verigama.
 
-    hz_field = [[hz,i] for i in range(2*N)] #Vertikalno polje
+    Returns:
+        tuple: Energijska lastna vrednost in pripadajoči lastni vektor Hamiltoniana.
+    """
+    # Veriga 1 [0 : N], veriga 2 [N:2N]
+    hx1_field = [[-hx1, i] for i in range(N)]  # Transverzalno polje
+    hx2_field = [[-hx2, N + i] for i in range(N)]  # Transverzalno polje
 
-    J_interaction = [[-J,i,i+1] for i in range(2*N-1) if i != N-1]  #Isingova interakcija
+    hz_field = [[hz, i] for i in range(2 * N)]  # Vertikalno polje
 
-    JT_interaction =[[-JT,i,N+i] for i in range(N)] #sklopitev med verigama
+    J_interaction = [[-J, i, i + 1] for i in range(2 * N - 1) if i != N - 1]  # Isingova interakcija
 
-    static_list = [["zz", J_interaction], ["x", hx1_field],["x", hx2_field], ["zz", JT_interaction], ["z", hz_field]]
+    JT_interaction = [[-JT, i, N + i] for i in range(N)]  # Sklopitev med verigama
+
+    static_list = [["zz", J_interaction], ["x", hx1_field], ["x", hx2_field], ["zz", JT_interaction], ["z", hz_field]]
     dynamic_list = []
-    spin_basis = spin_basis_1d(2*N)
+    spin_basis = spin_basis_1d(2 * N)
 
-    H = hamiltonian(static_list, dynamic_list, basis=spin_basis,dtype=np.float64)
+    H = hamiltonian(static_list, dynamic_list, basis=spin_basis, dtype=np.float64)
 
-    E, eigvect = H.eigsh(k=1,which = "SA")
+    E, eigvect = H.eigsh(k=1, which="SA")
 
     return (E, eigvect)
 
-def magnetization(ground_state:np.ndarray) -> tuple:
-    
+
+def magnetization(ground_state: np.ndarray) -> tuple:
+    """
+    Izračuna magnetizacijo sistema na podlagi osnovnega stanja.
+
+    Args:
+        ground_state (np.ndarray): Osnovno stanje sistema.
+
+    Returns:
+        tuple: Skupna magnetizacija sistema, magnetizacija verige 1, magnetizacija verige 2.
+    """
     M = 0
     M1 = 0
     M2 = 0
@@ -43,23 +72,31 @@ def magnetization(ground_state:np.ndarray) -> tuple:
     for i in range(len(ground_state)):
         m1 = 0
         m2 = 0
-        state = (2*bin_array(i,2*N)-1)
-        
-        for j in range(0,N,1):
+        state = (2 * bin_array(i, 2 * N) - 1)
+
+        for j in range(0, N, 1):
             m1 += state[j]
 
-        for j in range(N,2*N,1):
+        for j in range(N, 2 * N, 1):
             m2 += state[j]
 
-        M += np.abs(ground_state[i]**2) * (m1+m2) / (2*N)
-        M1+= np.abs(ground_state[i]**2) * m1 / N
-        M2+= np.abs(ground_state[i]**2) * m2 / N
-        
-    
-    return (M ,M1, M2)
+        M += np.abs(ground_state[i] ** 2) * (m1 + m2) / (2 * N)
+        M1 += np.abs(ground_state[i] ** 2) * m1 / N
+        M2 += np.abs(ground_state[i] ** 2) * m2 / N
 
-def anti_magnetization(ground_state:np.ndarray) -> tuple:
-    
+    return (M, M1, M2)
+
+
+def anti_magnetization(ground_state: np.ndarray) -> tuple:
+    """
+    Izračuna protimagnetizacijo sistema na podlagi osnovnega stanja.
+
+    Args:
+        ground_state (np.ndarray): Osnovno stanje sistema.
+
+    Returns:
+        tuple: Skupna protimagnetizacija sistema, protimagnetizacija verige 1, protimagnetizacija verige 2.
+    """
     M = 0
     M1 = 0
     M2 = 0
@@ -67,65 +104,76 @@ def anti_magnetization(ground_state:np.ndarray) -> tuple:
     for i in range(len(ground_state)):
         m1 = 0
         m2 = 0
-        state = (2*bin_array(i,2*N)-1)
-        
-        for j in range(0,N,1):
-            m1 += state[j] * (-1)**j
+        state = (2 * bin_array(i, 2 * N) - 1)
 
-        for j in range(N,2*N,1):
-            m2 += state[j] * (-1)**j
+        for j in range(0, N, 1):
+            m1 += state[j] * (-1) ** j
 
-        M += np.abs(ground_state[i]**2) * (m1+m2) / (2*N)
-        M1+= np.abs(ground_state[i]**2) * m1 / N
-        M2+= np.abs(ground_state[i]**2) * m2 / N
-        
-    
-    return (M ,M1, M2)
+        for j in range(N, 2 * N, 1):
+            m2 += state[j] * (-1) ** j
+
+        M += np.abs(ground_state[i] ** 2) * (m1 + m2) / (2 * N)
+        M1 += np.abs(ground_state[i] ** 2) * m1 / N
+        M2 += np.abs(ground_state[i] ** 2) * m2 / N
+
+    return (M, M1, M2)
 
 
-def timeEvolution(N:int, J:float, hxdrive:object, JTdrive:object, k:float):
+def timeEvolution(N: int, J: float, hxdrive: object, JTdrive: object, k: float):
+    """
+    Izvede časovni razvoj sistema s kvantnim Hamiltonianom.
 
+    Args:
+        N (int): Število spinov v sistemu.
+        J (float): Moč Isingove interakcije med sosednjimi spini v verigi.
+        hxdrive (object): Objekt, ki predstavlja transverzalno magnetno polje za verigo 1.
+        JTdrive (object): Objekt, ki predstavlja sklopitev med verigama.
+        k (float): Parameter, ki določa obliko pulza.
+
+    Returns:
+        np.ndarray: Seznam časovnih korakov za časovni razvoj sistema.
+    """
     t0 = hxdrive.t0
     tend = hxdrive.tend
 
-    #Veriga 1 [0 : N], veriga 2 [N:2N]
-    hx_field1 = [[-1, i] for i in range(N)] #Transverzalno polje
-    hx_field2 = [[-hxdrive.hx2, N+i] for i in range(N)] #Transverzalno polje
+    # Veriga 1 [0 : N], veriga 2 [N:2N]
+    hx_field1 = [[-1, i] for i in range(N)]  # Transverzalno polje
+    hx_field2 = [[-hxdrive.hx2, N + i] for i in range(N)]  # Transverzalno polje
 
-    hz_field = [[hz,i] for i in range(2*N)] #Vertikalno polje
+    hz_field = [[hz, i] for i in range(2 * N)]  # Vertikalno polje
 
-    J_interaction = [[-J,i,i+1] for i in range(2*N-1) if i != N-1]  #Isingova interakcija
+    J_interaction = [[-J, i, i + 1] for i in range(2 * N - 1) if i != N - 1]  # Isingova interakcija
 
-    JT_interaction =[[-1,i,N+i] for i in range(N)] #sklopitev med verigama
+    JT_interaction = [[-1, i, N + i] for i in range(N)]  # Sklopitev med verigama
 
-    static_list = [["zz", J_interaction], ["z", hz_field] ,["x", hx_field2]]
-    
+    static_list = [["zz", J_interaction], ["z", hz_field], ["x", hx_field2]]
 
-    dynamic_list = [["x",hx_field1,hxdrive.drive, ["garbageparameter"]], ["zz",JT_interaction,JTdrive.drive,[k]] ]
+    dynamic_list = [["x", hx_field1, hxdrive.drive, ["garbageparameter"]],
+                    ["zz", JT_interaction, JTdrive.drive, [k]]]
 
-    spin_basis = spin_basis_1d(2*N)
+    spin_basis = spin_basis_1d(2 * N)
 
-    H = hamiltonian(static_list, dynamic_list, basis=spin_basis,dtype=np.float64)
+    H = hamiltonian(static_list, dynamic_list, basis=spin_basis, dtype=np.float64)
 
-    #print(spin_basis[0])
-    #print(bin_array(spin_basis[0], m = N))
-    
-    groundstate = exactDiag(N = N, J = J, hx1 = hxdrive.hx0, hx2= hxdrive.hx2, JT = 0)[1][:,0]
+    groundstate = exactDiag(N=N, J=J, hx1=hxdrive.hx0, hx2=hxdrive.hx2, JT=0)[1][:, 0]
 
-    #groundstate = [0 if i not in (0,2**N-1) else 1/np.sqrt(2) for i in range(2**N)]
+    return (H.evolve(v0=groundstate, t0=t0, times=np.linspace(t0, tend + 10, 1000)))
 
-    return(H.evolve(v0=groundstate, t0 = t0, times=np.linspace(t0,tend,1000)))
-    
 
 class hxDrive:
-    ################ PRIBLIŽNA OCENA ZA DOBRO IZBIRO a, a = tend - t0
+    def __init__(self, t0: float, tend: float, hx0: float, hxend: float, hx2: float, a: float) -> None:
+        """
+        Konstruktor za objekt, ki predstavlja transverzalno magnetno polje za verigo 1.
 
-    #druge potencialno dobre izbire a, drive(polovica časa) = polovični hx, ali pa mogoče tak da minimizita d/dt drive pri t = tend
-
-    def __init__(self, t0:float,tend:float, hx0:float, hxend:float, hx2:float ,a:float) -> None:
-
-        #hx2 je hx za drugo verigo
-        self.hx2 = hx2
+        Args:
+            t0 (float): Začetni čas transverzalnega magnetnega polja.
+            tend (float): Končni čas transverzalnega magnetnega polja.
+            hx0 (float): Moč transverzalnega magnetnega polja na začetku.
+            hxend (float): Moč transverzalnega magnetnega polja na koncu.
+            hx2 (float): Moč transverzalnega magnetnega polja za verigo 2.
+            a (float): Parameter za določanje oblike pulza.
+        """
+        self.hx2 = hx2  # hx2 je moč transverzalnega magnetnega polja za drugo verigo
         self.tmax = tend
         self.tend = tend
         self.t0 = t0
@@ -133,80 +181,69 @@ class hxDrive:
         self.hx0 = hx0
         self.hxend = hxend
         self.a = a
-        self.b = a / (hx0-hxend) * (tend - t0)
+        self.b = a / (hx0 - hxend) * (tend - t0)
 
-    
+    def drive(self, t: float, garbage) -> float:
+        """
+        Izračuna vrednost transverzalnega magnetnega polja v času `t`.
 
-    def drive(self, t:float, garbage) -> float:
+        Args:
+            t (float): Čas za izračun transverzalnega magnetnega polja.
+            garbage: Nepomemben parameter, ki ga ne uporabljamo.
+
+        Returns:
+            float: Moč transverzalnega magnetnega polja v času `t`.
+        """
         if t < self.t0:
             return self.hx0
-        
+
         if t > self.tend:
             return self.hxend
 
-        return self.a / ((t-self.t0)**2 + self.b) * (self.tend - t) + self.hxend
-    
+        return self.a / ((t - self.t0) ** 2 + self.b) * (self.tend - t) + self.hxend
+
+
 class JTDrive:
+    def __init__(self, JT: float, w: float, hxstart: float, hxdrive: callable) -> None:
+        """
+        Konstruktor za objekt, ki predstavlja sklopitev med verigama.
 
-    def __init__(self, JT:float, w:float, hxstart:float, hxdrive:callable, ) -> None:
+        Args:
+            JT (float): Sklopitev med verigama.
+            w (float): Kotna frekvenca.
+            hxstart (float): Začetna moč transverzalnega magnetnega polja.
+            hxdrive (callable): Funkcija, ki predstavlja transverzalno magnetno polje za verigo 1.
+        """
         A = hxstart - hxdrive.hxend
-        B = hxdrive.a - 2*A*hxdrive.t0
-        C = A * (hxdrive.t0**2 + hxdrive.b) - hxdrive.a * hxdrive.tend
+        B = hxdrive.a - 2 * A * hxdrive.t0
+        C = A * (hxdrive.t0 ** 2 + hxdrive.b) - hxdrive.a * hxdrive.tend
 
-        self.tstart = (-B + np.sqrt(B**2-4*A*C)) / (2*A)
-        self.tmid =1/2 * (self.tstart + hxdrive.tend) 
+        self.tstart = (-B + np.sqrt(B ** 2 - 4 * A * C)) / (2 * A)
+        self.tmid = 1 / 2 * (self.tstart + hxdrive.tend)
         self.c = (hxdrive.tend - self.tmid)
         self.tend = hxdrive.tend
-
-
 
         self.JT = JT
         self.w = w
 
-    
+    def drive(self, t: float, k: float) -> float:
+        """
+        Izračuna vrednost sklopitve med verigama v času `t`.
 
-    def drive(self, t:float, k:float) -> float:
-        # k nam pove kako ostra je gaussovka, dobra izbira je recimo 1/3 ali manjše
+        Args:
+            t (float): Čas za izračun sklopitve med verigama.
+            k (float): Parameter, ki določa obliko pulza.
 
+        Returns:
+            float: Vrednost sklopitve med verigama v času `t`.
+        """
         if t < self.tstart:
             return 0
-        
+
         if t > self.tend:
             return 0
 
-        return self.JT * np.cos(self.w * t) * np.exp(-(t-self.tmid)**2 / (2*(k * self.c)**2))
-    
-class JTDriveAutoW:
-
-    def __init__(self, JT:float, hxstart:float, hxdrive:callable, ) -> None:
-        A = hxstart - hxdrive.hxend
-        B = hxdrive.a - 2*A*hxdrive.t0
-        C = A * (hxdrive.t0**2 + hxdrive.b) - hxdrive.a * hxdrive.tend
-
-        self.tstart = (-B + np.sqrt(B**2-4*A*C)) / (2*A)
-        self.tmid =1/2 * (self.tstart + hxdrive.tend) 
-        self.c = 1/3 * (hxdrive.tend - self.tmid)
-        self.tend = hxdrive.tend
-        self.hxdrive = hxdrive
-
-
-
-        self.JT = JT
-
-    
-
-    def drive(self, t:float, garbage) -> float:
-
-        self.w = 2* (self.hxdrive.hx2 - self.hxdrive.drive(t, "trash"))
-
-        if t < self.tstart:
-            return 0
-        
-        if t > self.tend:
-            return 0
-
-        return self.JT * np.cos(self.w * t) * np.exp(-(t-self.tmid)**2 / (2*self.c**2))
-
+        return self.JT * np.cos(self.w * t) * np.exp(-(t - self.tmid) ** 2 / (2 * (k * self.c) ** 2))
 
 
 """
@@ -215,7 +252,6 @@ ts = np.linspace(0,10,1000)
 
 y1s = [hxDrive(0,10,10,0,100,10).drive(t,"trash") for t in ts]
 y2s = [JTDrive(1,10,1,hxDrive(0,10,10,0,100,10)).drive(t,"trash") for t in ts]
-#y2s = [JTDriveAutoW(1,1,hxDrive(0,10,10,0,100,10)).drive(t,"trash") for t in ts]
 
 
 plt.plot(ts, y1s, label = "$h_x$")
