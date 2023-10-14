@@ -3,7 +3,7 @@ from quspin.basis import spin_basis_1d  # Spinov prostor Hilbertovega prostora
 import numpy as np  # Generične matematične funkcije
 import matplotlib.pyplot as plt  # Knjižnica za risanje grafov
 
-hz = 0.01  # Frekvenca magnetnega polja
+hz = 0.01  # Jakost magnetnega polja v z smeri
 
 
 def bin_array(num: int, m: int) -> list:
@@ -157,7 +157,7 @@ def timeEvolution(N: int, J: float, hxdrive: object, JTdrive: object, k: float):
 
     groundstate = exactDiag(N=N, J=J, hx1=hxdrive.hx0, hx2=hxdrive.hx2, JT=0)[1][:, 0]
 
-    return (H.evolve(v0=groundstate, t0=t0, times=np.linspace(t0, tend + 10, 1000)))
+    return (H.evolve(v0=groundstate, t0=t0, times=np.linspace(t0, tend *1.1, 1000)))
 
 
 class hxDrive:
@@ -244,10 +244,101 @@ class JTDrive:
             return 0
 
         return self.JT * np.cos(self.w * t) * np.exp(-(t - self.tmid) ** 2 / (2 * (k * self.c) ** 2))
+    
+#JTDrive, ki se ga da enostavno uporabiti v izmeničniJTDrive
+class JTDriveNew:
+    def __init__(self, JT:float, w:float, tstart:float, tend:float) -> None:
+        self.c =1/2 * (tend-tstart)
+        self.tmid = 1/2 * (tstart + tend)
+        self.tstart = tstart
+        self.tend = tend
+        self.JT = JT
+        self.w = w
+
+    def drive(self, t: float, k: float) -> float:
+        if t < self.tstart:
+            return 0
+
+        if t > self.tend:
+            return 0
+
+        return self.JT * np.cos(self.w * t) * np.exp(-(t - self.tmid) ** 2 / (2 * (k * self.c) ** 2))
+    
+class ConstDrive():
+
+    def __init__(self, value:float) -> None:
+        self.value = value
+
+    def drive(self, t:float, garbage) -> float:
+        return self.value
+    
+class IzmeničniHxDrive():
+    
+    def __init__(self, splittimes:list, edgevalues:list, hx2:float, As:list) -> None:
+        driveObjects = []
+        driveTypes = []
+
+        for i in range(len(splittimes)-1):
+            tstart = splittimes[i]
+            tend = splittimes[i+1]
+
+            hstart = edgevalues[i]
+            hend = edgevalues[i+1]
+            
+            if hstart != hend:
+                driveObjects.append(hxDrive(t0=tstart,tend=tend,hx0=hstart,hxend=hend, hx2=hx2, a=As[i])) #Tu lahko HxDrive zamenjamo z katerokoli funkcijo ki poveže začetno in končno točko
+                driveTypes.append("Non_Constant")
+            else:
+                driveObjects.append(ConstDrive(hstart))
+                driveTypes.append("Constant")
+
+        self.driveObjets = driveObjects
+        self.splittimes = splittimes
+        self.driveTypes = driveTypes
+        self.hx2 = hx2
+    
+    def drive(self,t:float, garbage) -> float:
+        I = len(self.splittimes)-1
+        for i in range(len(self.splittimes)):
+            if t >= self.splittimes[i] and t <= self.splittimes[i+1]:
+                I = i
+                break
+
+        return self.driveObjets[I].drive(t,"garbage")
+    
+class IzmeničniJTDrive():
+    def __init__(self, JTs:list, ws:list, IzmeničniHxDrive:IzmeničniHxDrive) -> None:
+        driveObjects = []
+
+        for i in range(len(IzmeničniHxDrive.driveTypes)):
+            if IzmeničniHxDrive.driveTypes[i] != "Constant":
+                driveObjects.append(ConstDrive(0))
+            else:
+                driveObjects.append(JTDriveNew(JT=JTs[i], w=ws[i], tstart=IzmeničniHxDrive.splittimes[i], tend=IzmeničniHxDrive.splittimes[i+1]))
+
+        self.driveObjects = driveObjects
+        self.IzmeničniHxDrive = IzmeničniHxDrive
+
+    def drive(self,t:float, k:float) -> float:
+        I = len(self.IzmeničniHxDrive.splittimes)-1
+        for i in range(len(self.IzmeničniHxDrive.splittimes)):
+            if t >= self.IzmeničniHxDrive.splittimes[i] and t <= self.IzmeničniHxDrive.splittimes[i+1]:
+                I = i
+                break
+
+        return self.driveObjects[I].drive(t,k)
 
 
+                
+            
+
+        
+    
+#DEMONSTRACIJE UPORABE RAZLIČNIH DRIVE OBJEKTOV
+
+
+# ISTOČASNA IMPLEMENTACIJA
 """
-#Drive Demonstration
 ts = np.linspace(0,10,1000)
 
 y1s = [hxDrive(0,10,10,0,100,10).drive(t,"trash") for t in ts]
@@ -257,5 +348,32 @@ y2s = [JTDrive(1,10,1,hxDrive(0,10,10,0,100,10)).drive(t,"trash") for t in ts]
 plt.plot(ts, y1s, label = "$h_x$")
 plt.plot(ts, y2s, label = "$J_T$")
 plt.legend()
+plt.show()
+"""
+
+
+# ZLEPLJENA HX FUNKCIJA
+"""
+ts = np.linspace(0,100,1000)
+
+Drive = IzmeničniHxDrive([0,12,40,100], [10,2,1,0], 12222, [10,10,10,10])
+
+y1s = [Drive.drive(t,"trash") for t in ts]
+plt.plot(ts, y1s, label = "$h_x$")
+plt.show()
+"""
+
+
+# JT IN HX SE SPREMINJATA IZMENIČNO
+"""
+ts = np.linspace(0,100,1000)
+
+DriveHx = IzmeničniHxDrive([0,12,40,100], [10,2,2,0], 12222, [10,10,10,10])
+DriveJT = IzmeničniJTDrive(["",2,"",""], ["",2,"",""],DriveHx)
+
+y1s = [DriveHx.drive(t,"trash") for t in ts]
+y2s = [DriveJT.drive(t,1/4) for t in ts]
+plt.plot(ts, y1s, label = "$h_x$")
+plt.plot(ts, y2s, label = "$h_x$")
 plt.show()
 """

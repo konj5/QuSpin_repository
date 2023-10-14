@@ -24,23 +24,34 @@ hxend = 0
 hx2 = 10
 
 # Jakost sklopitve med verigama
-JT = 1
+JT = 2.1
 
 # Vrednost transverzalnega polja pri kateri začnemo sklopitev
 hxstart = 1
 
 # Frekvenca nihanja za JTDrive
-w = 2 * (hx2 - hxstart / 2)
+w = 2 * (hx2 - hxstart) # <----------------------------------------------------- To bi lahko dobil tudi tako, da samo zračunaš <v|H1|v> - <v|H2|v>, če prav razumem načeloma ni treba nič uganiti!
+
+# Parameter za obliko funkcije hx drive
+a = 10
 
 # Parameter za obliko funkcije JT drive, skalira širino gaussovke (za več podatkov je vloga razvidna iz razreda JTDrive)
 k = 1/5
 
+
+
 # PODATKI ZA ENOVERIŽNI SISTEM
-hxDrive = TwoChain.hxDrive(t0=t0, tend=tend, hx0=hx0, hxend=hxend, hx2=hx2, a=10)
+hxDrive = TwoChain.hxDrive(t0=t0, tend=tend, hx0=hx0, hxend=hxend, hx2=hx2, a=a)
 JTDrive = TwoChain.JTDrive(JT=JT, w=w, hxstart=hxstart, hxdrive=hxDrive)
 
+"""
+Tole še ne dela
+hxDrive = TwoChain.IzmeničniHxDrive(splittimes = [t0, 1/2 * (t0 + tend), tend], edgevalues = [hx0,hxstart,hxend], hx2 = hx2, As = [a,a,a])
+JTDrive = TwoChain.IzmeničniJTDrive(JTs = ["",JT,""], ws=["",w,""], IzmeničniHxDrive=hxDrive)
+"""
+
 # PODATKI ZA DVOVERIŽNI SISTEM
-ts = np.linspace(t0, tend + 10, 1000)
+ts = np.linspace(t0, tend *1.1, 1000)
 vs2 = TwoChain.timeEvolution(N=N, J=J, hxdrive=hxDrive, JTdrive=JTDrive, k=k)
 
 # Demonstracija drive funkcij
@@ -118,8 +129,6 @@ plt.legend()
 plt.show()
 """
 
-
-import matplotlib.pyplot as plt
 
 # Razdelitev okna za prikaz grafov
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3)

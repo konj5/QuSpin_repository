@@ -121,7 +121,7 @@ def timeEvolution(N: int, hx: float, J: float, a: float, drive: callable, t0: fl
 
     groundstate = exactDiag(N, hx + drive(garbage=a, t=t0), J)[1][:, 0]
 
-    return (H.evolve(v0=groundstate, t0=t0, times=np.linspace(t0, tmax, 1000)))
+    return (H.evolve(v0=groundstate, t0=t0, times=np.linspace(t0, tmax*1.1, 1000)))
 
     
 
