@@ -39,18 +39,18 @@ a = 10
 k = 1/5
 
 
-
-# PODATKI ZA ENOVERIŽNI SISTEM
-hxDrive = TwoChain.hxDrive(t0=t0, tend=tend, hx0=hx0, hxend=hxend, hx2=hx2, a=a)
+"""
+# ISTOČASNI DRIVE
+hxDrive = TwoChain.hxDrive(t0=t0, tend=tend, hx0=hx0, hxend=hxend, hx2=hx2, a=a) # <------------------------------------------- IZBERI EN ALI DRUGI DRIVE !!!
 JTDrive = TwoChain.JTDrive(JT=JT, w=w, hxstart=hxstart, hxdrive=hxDrive)
-
-"""
-Tole še ne dela
-hxDrive = TwoChain.IzmeničniHxDrive(splittimes = [t0, 1/2 * (t0 + tend), tend], edgevalues = [hx0,hxstart,hxend], hx2 = hx2, As = [a,a,a])
-JTDrive = TwoChain.IzmeničniJTDrive(JTs = ["",JT,""], ws=["",w,""], IzmeničniHxDrive=hxDrive)
 """
 
-# PODATKI ZA DVOVERIŽNI SISTEM
+# ITMENIČNI DRIVE
+hxDrive = TwoChain.IzmeničniHxDrive(splittimes = [t0, 1/3 * (t0 + tend),  2/3 * (t0 + tend), tend], edgevalues = [hx0,hxstart, hxstart,hxend], hx2 = hx2, As = [a,"",a,a])
+JTDrive = TwoChain.IzmeničniJTDrive(JTs = ["",JT,"",""], ws=["",w,"",""], IzmeničniHxDrive=hxDrive)
+
+
+
 ts = np.linspace(t0, tend *1.1, 1000)
 vs2 = TwoChain.timeEvolution(N=N, J=J, hxdrive=hxDrive, JTdrive=JTDrive, k=k)
 

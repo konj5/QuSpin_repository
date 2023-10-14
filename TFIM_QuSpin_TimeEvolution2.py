@@ -166,7 +166,7 @@ class LogHarmonicDrive:
         self.tend = tend
         self.t0 = t0
         self.tstart = t0
-        endtolerance = 10**-3
+        endtolerance = 10**-1
         self.c = np.log(tend+1) * (endtolerance)
 
     def drive(self, t:float, garbage:float) -> float:
@@ -263,6 +263,7 @@ def evolvePQA_st(N: int, J: float, hx: float, a: list, drives: list):
 
     for i in range(len(dotss)):
         ax1.plot(tss[i], dss[i], color=colors[i])
+        ax1.set_yscale("log")
         ax2.plot(tss[i], dotss[i], color=colors[i])
         ax2.plot(tss[i], exactdotss[i], color=colors[i+1], linestyle="dotted")
         ax3.axhline(y=dotss[i][-1], label=f"{a[i]}", color=colors[i])
@@ -340,7 +341,7 @@ def getK2toFitTmax(tstart: float, tmax: float):
 
 #evolvePQA_st(N = 4, J=1, hx=0, a = [""], drives=[HarmonicDrive(t0 = 0.1, tend=1000)])
 #evolvePQA_st(N = 4, J=1, hx=0, a = [""], drives=[RootHarmonicDrive(t0 = 0.1, tend=1000)])
-#evolvePQA_st(N = 4, J=1, hx=0, a = [""], drives=[LogHarmonicDrive(t0 = 0.1, tend=1000)])
+#evolvePQA_st(N = 4, J=1, hx=0, a = [""], drives=[LogHarmonicDrive(t0 = 0.01, tend=1000)])
 
 #Kako izbirati a in tend-t0 ==> zih neka povezava
 # tend določi a, tako da je hx(tend) = hx(inf) + endtolerance

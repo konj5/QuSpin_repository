@@ -295,11 +295,18 @@ class IzmeničniHxDrive():
         self.driveObjets = driveObjects
         self.splittimes = splittimes
         self.driveTypes = driveTypes
+        self.t0 = splittimes[0]
+        self.tend = splittimes[-1]
         self.hx2 = hx2
+        self.hx0 = edgevalues[0]
+        self.hxend = edgevalues[-1]
     
     def drive(self,t:float, garbage) -> float:
+        if t < self.t0: return self.hx0
+        if t > self.tend: return self.hxend
+
         I = len(self.splittimes)-1
-        for i in range(len(self.splittimes)):
+        for i in range(len(self.splittimes)-1):
             if t >= self.splittimes[i] and t <= self.splittimes[i+1]:
                 I = i
                 break
@@ -320,8 +327,11 @@ class IzmeničniJTDrive():
         self.IzmeničniHxDrive = IzmeničniHxDrive
 
     def drive(self,t:float, k:float) -> float:
+        if t < self.IzmeničniHxDrive.t0: return 0
+        if t > self.IzmeničniHxDrive.tend: return 0
+        
         I = len(self.IzmeničniHxDrive.splittimes)-1
-        for i in range(len(self.IzmeničniHxDrive.splittimes)):
+        for i in range(len(self.IzmeničniHxDrive.splittimes)-1):
             if t >= self.IzmeničniHxDrive.splittimes[i] and t <= self.IzmeničniHxDrive.splittimes[i+1]:
                 I = i
                 break
